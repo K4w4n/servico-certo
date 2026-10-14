@@ -16,7 +16,7 @@ O projeto está **no início**. Ainda não há código publicado — este reposi
 
 Acompanhe as atualizações por aqui. Ideias e sugestões são muito bem-vindas!
 
-## 💡 Ideias e sugestões
+## Ideias e sugestões
 
 Tem uma ideia, dúvida ou sugestão? Compartilhe!
 
