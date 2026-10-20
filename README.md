@@ -31,7 +31,7 @@ servico-certo/
 │  │  ├─ src/
 │  │  │  ├─ database/       # conexão Knex, migrations e seeds
 │  │  │  ├─ health/         # health check
-│  │  │  ├─ modules/        # contextos de negócio (camadas vazias por enquanto)
+│  │  │  ├─ modules/        # contextos de negócio (identity implementado)
 │  │  │  └─ shared/         # env, filtros e código transversal
 │  │  ├─ test/              # testes e2e
 │  │  └─ knexfile.ts
@@ -61,10 +61,13 @@ pnpm install
 # 2. Crie o arquivo de ambiente da API
 cp .env.example .env
 
-# 3. (Opcional) Sobrescreva a URL da API usada pelo web
+# 3. Crie as tabelas do banco (SQLite por padrão)
+pnpm db:migrate
+
+# 4. (Opcional) Sobrescreva a URL da API usada pelo web
 cp apps/web/.env.example apps/web/.env.local
 
-# 4. Suba API e web em modo desenvolvimento
+# 5. Suba API e web em modo desenvolvimento
 pnpm dev
 ```
 
@@ -75,7 +78,9 @@ pnpm dev
 | Health check | http://localhost:3001/health |
 | Swagger      | http://localhost:3001/docs   |
 
-O banco padrão em desenvolvimento é o SQLite, criado automaticamente em `apps/api/.data/dev.sqlite`.
+O banco padrão em desenvolvimento é o SQLite, criado em `apps/api/.data/dev.sqlite` após rodar as
+migrations. O `.env.example` já inclui um `JWT_SECRET` de desenvolvimento; troque esse valor em
+produção.
 
 ## Banco de dados
 
@@ -98,8 +103,29 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-> Ainda não há migrations neste scaffold. A pasta `apps/api/src/database/migrations` está pronta
-> para receber a primeira quando o modelo de dados for definido.
+As migrations `001_create_tenants`, `002_create_accounts` e `003_create_refresh_tokens` criam as
+tabelas do contexto de identity e já rodam tanto no SQLite quanto no PostgreSQL.
+
+## Identity e autenticação
+
+O contexto `identity` implementa tenants, contas e sessões.
+
+| Método | Rota                | Descrição                                     |
+| ------ | ------------------- | --------------------------------------------- |
+| `POST` | `/v1/auth/register` | Cria um tenant e a primeira conta             |
+| `POST` | `/v1/auth/login`    | Autentica com slug do tenant, e-mail e senha  |
+| `POST` | `/v1/auth/refresh`  | Rotaciona a sessão usando o cookie de refresh |
+| `POST` | `/v1/auth/logout`   | Revoga a sessão atual                         |
+| `GET`  | `/v1/auth/me`       | Retorna a conta e o tenant do token de acesso |
+
+- Senhas com **argon2id**.
+- **Access token** JWT de 15 minutos, retornado no JSON.
+- **Refresh token** opaco em cookie `httpOnly`, com rotação e detecção de reuso.
+- E-mail único **por tenant**; o login resolve o tenant pelo slug (`domain`).
+- IDs públicos no formato `{prefixo}_{base64url(16 bytes do UUIDv7)}`:
+  - tenant: `ten_AaFXJKFudkiOtV8yn8ts-g`
+  - account: `acc_...`
+- No banco, os IDs continuam **UUIDv7 puros**; o prefixo existe apenas na borda HTTP.
 
 ## Scripts
 
@@ -114,6 +140,10 @@ pnpm db:migrate
 | `pnpm db:migrate`  | Aplica as migrations             |
 | `pnpm db:rollback` | Reverte a última migration       |
 | `pnpm db:seed`     | Executa os seeds                 |
+
+Em produção, rode `pnpm build` e use as variantes `:prod` (`db:migrate:prod`,
+`db:rollback:prod`, `db:seed:prod`), que executam o CLI compilado em `dist` com
+`NODE_ENV=production`.
 
 ## Arquitetura
 
@@ -131,14 +161,16 @@ A regra de dependência aponta sempre para dentro: `presentation` e `infrastruct
 `application`, que depende de `domain`. O domínio não conhece NestJS, Knex ou qualquer detalhe
 externo. A composição acontece no `<module>.module.ts`.
 
-As pastas já existem, mas estão vazias de propósito: entidades, use cases e funcionalidades serão
-adicionados junto com cada feature. O padrão completo está em
-[`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
+O contexto `identity` já tem as quatro camadas implementadas. Os demais contextos (`customers`,
+`catalog`, `work-orders`, `inventory`, `invoicing`) estão com as pastas vazias de propósito:
+entidades, use cases e funcionalidades serão adicionados junto com cada feature. O padrão completo
+está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 
 ## Status do projeto
 
-O projeto está **no início**. Este repositório contém o scaffold do monorepo, a API base com health
-check e a interface inicial. As funcionalidades de negócio ainda não foram implementadas.
+O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
+accounts e autenticação) já estão implementados. As demais funcionalidades de negócio ainda não
+foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 

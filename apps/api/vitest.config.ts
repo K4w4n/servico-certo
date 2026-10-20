@@ -6,6 +6,7 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.spec.ts', 'test/**/*.e2e-spec.ts'],
     pool: 'forks',
+    setupFiles: ['./test/setup.ts'],
   },
   plugins: [
     swc.vite({

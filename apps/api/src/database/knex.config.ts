@@ -44,6 +44,21 @@ function sqliteConfig(filename: string, environment: string): Knex.Config {
     client: 'better-sqlite3',
     connection: { filename },
     useNullAsDefault: true,
+    pool: {
+      min: 1,
+      max: 1,
+      afterCreate: (
+        connection: unknown,
+        done: (error: Error | null, connection: unknown) => void,
+      ) => {
+        try {
+          (connection as { pragma: (statement: string) => void }).pragma('foreign_keys = ON');
+          done(null, connection);
+        } catch (error) {
+          done(error instanceof Error ? error : new Error(String(error)), connection);
+        }
+      },
+    },
     migrations: migrationsConfig(environment),
     seeds: seedsConfig(environment),
   };

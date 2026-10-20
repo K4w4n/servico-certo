@@ -1,0 +1,11 @@
+import type { Knex } from 'knex';
+import * as createTenants from '../../src/database/migrations/001_create_tenants.js';
+import * as createAccounts from '../../src/database/migrations/002_create_accounts.js';
+import * as createRefreshTokens from '../../src/database/migrations/003_create_refresh_tokens.js';
+
+// Executa as migrations diretamente para não depender do loader de TS do Knex no Vitest.
+export async function runMigrations(db: Knex): Promise<void> {
+  await createTenants.up(db);
+  await createAccounts.up(db);
+  await createRefreshTokens.up(db);
+}

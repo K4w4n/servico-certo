@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
 import { validateEnv } from './shared/config/env.js';
+import { SharedModule } from './shared/shared.module.js';
 
 @Module({
   imports: [
@@ -13,7 +15,9 @@ import { validateEnv } from './shared/config/env.js';
       validate: validateEnv,
     }),
     DatabaseModule,
+    SharedModule,
     HealthModule,
+    IdentityModule,
   ],
 })
 export class AppModule {}

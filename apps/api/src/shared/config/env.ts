@@ -7,6 +7,12 @@ const envSchema = z.object({
   DATABASE_CLIENT: z.enum(['better-sqlite3', 'pg']).default('better-sqlite3'),
   DATABASE_URL: z.string().url().optional(),
   SQLITE_PATH: z.string().optional(),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres'),
+  JWT_ISSUER: z.string().default('servico-certo'),
+  JWT_AUDIENCE: z.string().default('servico-certo-web'),
+  ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
+  COOKIE_DOMAIN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

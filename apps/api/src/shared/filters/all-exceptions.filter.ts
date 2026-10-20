@@ -7,6 +7,24 @@ import {
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { AppError } from '../errors/app-error.js';
+
+const APP_ERROR_STATUS: Record<string, number> = {
+  INVALID_EMAIL: HttpStatus.BAD_REQUEST,
+  INVALID_TENANT_DOMAIN: HttpStatus.BAD_REQUEST,
+  INVALID_TENANT_NAME: HttpStatus.BAD_REQUEST,
+  INVALID_ACCOUNT_NAME: HttpStatus.BAD_REQUEST,
+  INVALID_PASSWORD_HASH: HttpStatus.BAD_REQUEST,
+  INVALID_REFRESH_TOKEN_DATA: HttpStatus.BAD_REQUEST,
+  WEAK_PASSWORD: HttpStatus.BAD_REQUEST,
+  VALIDATION_ERROR: HttpStatus.BAD_REQUEST,
+  INVALID_PUBLIC_ID: HttpStatus.BAD_REQUEST,
+  TENANT_DOMAIN_TAKEN: HttpStatus.CONFLICT,
+  EMAIL_TAKEN: HttpStatus.CONFLICT,
+  INVALID_CREDENTIALS: HttpStatus.UNAUTHORIZED,
+  INVALID_REFRESH_TOKEN: HttpStatus.UNAUTHORIZED,
+  UNAUTHORIZED: HttpStatus.UNAUTHORIZED,
+};
 
 type ErrorResponse = {
   error: {
@@ -27,23 +45,43 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
 
-    const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const payload = exception instanceof HttpException ? exception.getResponse() : undefined;
-
+    let status: number = HttpStatus.INTERNAL_SERVER_ERROR;
+    let code = 'HTTP_500';
     let message = 'Internal server error';
     let details: unknown;
 
-    if (typeof payload === 'string') {
-      message = payload;
-    } else if (payload && typeof payload === 'object') {
-      const body = payload as { message?: string | string[] };
+    if (exception instanceof AppError) {
+      status = APP_ERROR_STATUS[exception.code] ?? HttpStatus.INTERNAL_SERVER_ERROR;
+      code = exception.code;
+      message = exception.message;
+    } else if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      code = `HTTP_${status}`;
+      const payload = exception.getResponse();
 
-      if (Array.isArray(body.message)) {
-        message = 'Validation failed';
-        details = body.message;
-      } else if (typeof body.message === 'string') {
-        message = body.message;
+      if (typeof payload === 'string') {
+        message = payload;
+      } else if (payload && typeof payload === 'object') {
+        const body = payload as {
+          code?: unknown;
+          message?: string | string[];
+          details?: unknown;
+        };
+
+        if (typeof body.code === 'string') {
+          code = body.code;
+        }
+
+        if (Array.isArray(body.message)) {
+          message = 'Validation failed';
+          details = body.message;
+        } else if (typeof body.message === 'string') {
+          message = body.message;
+        }
+
+        if (body.details !== undefined) {
+          details = body.details;
+        }
       }
     }
 
@@ -53,7 +91,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const responseBody: ErrorResponse = {
       error: {
-        code: `HTTP_${status}`,
+        code,
         message,
         ...(details === undefined ? {} : { details }),
         path: request.url,

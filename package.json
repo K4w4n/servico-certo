@@ -16,7 +16,10 @@
     "format:check": "prettier --check .",
     "db:migrate": "pnpm --filter @servico-certo/api db:migrate",
     "db:rollback": "pnpm --filter @servico-certo/api db:rollback",
-    "db:seed": "pnpm --filter @servico-certo/api db:seed"
+    "db:seed": "pnpm --filter @servico-certo/api db:seed",
+    "db:migrate:prod": "pnpm --filter @servico-certo/api db:migrate:prod",
+    "db:rollback:prod": "pnpm --filter @servico-certo/api db:rollback:prod",
+    "db:seed:prod": "pnpm --filter @servico-certo/api db:seed:prod"
   },
   "devDependencies": {
     "@servico-certo/config": "workspace:*",
