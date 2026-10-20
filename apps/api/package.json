@@ -1,0 +1,46 @@
+{
+  "name": "@servico-certo/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx src/database/cli.ts migrate:latest",
+    "db:rollback": "tsx src/database/cli.ts migrate:rollback",
+    "db:seed": "tsx src/database/cli.ts seed:run"
+  },
+  "dependencies": {
+    "@nestjs/common": "12.2.0",
+    "@nestjs/config": "12.0.1",
+    "@nestjs/core": "12.2.0",
+    "@nestjs/platform-express": "12.2.0",
+    "@nestjs/swagger": "12.0.2",
+    "better-sqlite3": "13.0.3",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "knex": "3.3.0",
+    "pg": "8.23.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "12.0.9",
+    "@nestjs/testing": "12.2.0",
+    "@swc/core": "1.16.18",
+    "@types/express": "5.0.6",
+    "@types/node": "22.20.5",
+    "@types/supertest": "7.2.1",
+    "supertest": "7.3.1",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "unplugin-swc": "2.0.0",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}
