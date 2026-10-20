@@ -65,6 +65,11 @@ export class Account {
   get updatedAt(): Date {
     return this.props.updatedAt;
   }
+
+  changePassword(passwordHash: PasswordHash, now: Date): void {
+    this.props.passwordHash = passwordHash;
+    this.props.updatedAt = now;
+  }
 }
 
 function normalizeAccountName(raw: string): string {

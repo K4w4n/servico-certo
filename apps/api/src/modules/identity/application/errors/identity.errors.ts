@@ -47,3 +47,11 @@ export class UnauthorizedError extends AppError {
     super(message);
   }
 }
+
+export class InvalidResetTokenError extends AppError {
+  readonly code = 'INVALID_RESET_TOKEN';
+
+  constructor(message = 'Token de reset inválido ou expirado') {
+    super(message);
+  }
+}

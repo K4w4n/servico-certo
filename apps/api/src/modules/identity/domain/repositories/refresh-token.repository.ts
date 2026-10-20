@@ -7,4 +7,5 @@ export interface RefreshTokenRepository {
   save(token: RefreshToken): Promise<void>;
   revoke(id: string, revokedAt: Date, replacedById: string | null): Promise<boolean>;
   revokeFamily(familyId: string, revokedAt: Date): Promise<void>;
+  revokeAllForAccount(accountId: string, revokedAt: Date): Promise<void>;
 }

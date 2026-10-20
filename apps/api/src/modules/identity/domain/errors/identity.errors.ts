@@ -47,3 +47,11 @@ export class InvalidRefreshTokenDataError extends AppError {
     super(message);
   }
 }
+
+export class InvalidPasswordResetTokenDataError extends AppError {
+  readonly code = 'INVALID_PASSWORD_RESET_TOKEN_DATA';
+
+  constructor(message = 'Dados do token de reset inválidos') {
+    super(message);
+  }
+}

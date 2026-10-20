@@ -41,4 +41,12 @@ export class KnexRefreshTokenRepository implements RefreshTokenRepository {
       .whereNull('revoked_at')
       .update({ revoked_at: revokedAt });
   }
+
+  async revokeAllForAccount(accountId: string, revokedAt: Date): Promise<void> {
+    await this.uow
+      .executor('refresh_tokens')
+      .where({ account_id: accountId })
+      .whereNull('revoked_at')
+      .update({ revoked_at: revokedAt });
+  }
 }

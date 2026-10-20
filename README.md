@@ -103,20 +103,29 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-As migrations `001_create_tenants`, `002_create_accounts` e `003_create_refresh_tokens` criam as
-tabelas do contexto de identity e já rodam tanto no SQLite quanto no PostgreSQL.
+As migrations `001` a `004` criam as tabelas do contexto de identity
+(`tenants`, `accounts`, `refresh_tokens` e `password_reset_tokens`) e já rodam
+tanto no SQLite quanto no PostgreSQL.
+
+O `docker compose` também sobe o **Mailpit**:
+
+- SMTP: `localhost:1025`
+- Interface web: http://localhost:8025
 
 ## Identity e autenticação
 
 O contexto `identity` implementa tenants, contas e sessões.
 
-| Método | Rota                | Descrição                                     |
-| ------ | ------------------- | --------------------------------------------- |
-| `POST` | `/v1/auth/register` | Cria um tenant e a primeira conta             |
-| `POST` | `/v1/auth/login`    | Autentica com slug do tenant, e-mail e senha  |
-| `POST` | `/v1/auth/refresh`  | Rotaciona a sessão usando o cookie de refresh |
-| `POST` | `/v1/auth/logout`   | Revoga a sessão atual                         |
-| `GET`  | `/v1/auth/me`       | Retorna a conta e o tenant do token de acesso |
+| Método | Rota                               | Descrição                                     |
+| ------ | ---------------------------------- | --------------------------------------------- |
+| `POST` | `/v1/auth/register`                | Cria um tenant e a primeira conta             |
+| `POST` | `/v1/auth/login`                   | Autentica com slug do tenant, e-mail e senha  |
+| `POST` | `/v1/auth/refresh`                 | Rotaciona a sessão usando o cookie de refresh |
+| `POST` | `/v1/auth/logout`                  | Revoga a sessão atual                         |
+| `GET`  | `/v1/auth/me`                      | Retorna a conta e o tenant do token de acesso |
+| `POST` | `/v1/auth/password-reset/request`  | Solicita o envio do link de reset             |
+| `POST` | `/v1/auth/password-reset/validate` | Valida o token e retorna conta/tenant         |
+| `POST` | `/v1/auth/password-reset/confirm`  | Define a nova senha                           |
 
 - Senhas com **argon2id**.
 - **Access token** JWT de 15 minutos, retornado no JSON.
@@ -126,6 +135,30 @@ O contexto `identity` implementa tenants, contas e sessões.
   - tenant: `ten_AaFXJKFudkiOtV8yn8ts-g`
   - account: `acc_...`
 - No banco, os IDs continuam **UUIDv7 puros**; o prefixo existe apenas na borda HTTP.
+
+### Reset de senha
+
+Fluxo em três etapas:
+
+1. `POST /v1/auth/password-reset/request` com `{ tenantDomain, email }`.
+   A resposta é sempre `204`, exista ou não a conta.
+2. O e-mail contém um link `{WEB_APP_URL}/reset-password?token=...`.
+3. `POST /v1/auth/password-reset/validate` com `{ token }` retorna a conta e o
+   tenant que serão redefinidos, sem consumir o token.
+4. `POST /v1/auth/password-reset/confirm` com `{ token, password }` consome o
+   token e define a nova senha.
+
+- Token de uso único, válido por **30 minutos**, salvo apenas como SHA-256.
+- Solicitar um novo link invalida os tokens pendentes anteriores.
+- A confirmação revoga todos os refresh tokens da conta.
+- A rota de solicitação tem rate limit de **3 tentativas por 15 minutos por IP**.
+- A página `/reset-password` do frontend ainda será criada; por enquanto o link
+  pode ser usado diretamente no Swagger.
+
+**Envio de e-mail:** por padrão `MAIL_TRANSPORT=console`, que imprime o link no
+log da API. Para usar SMTP, configure `MAIL_TRANSPORT=smtp` e as variáveis
+`SMTP_*`. O `docker compose` sobe o Mailpit em `http://localhost:8025` para
+inspecionar os e-mails em desenvolvimento.
 
 ## Scripts
 
@@ -169,8 +202,8 @@ está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
-accounts e autenticação) já estão implementados. As demais funcionalidades de negócio ainda não
-foram implementadas.
+accounts, autenticação e reset de senha) já estão implementados. As demais funcionalidades de
+negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
