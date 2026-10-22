@@ -8,6 +8,7 @@ import { REFRESH_TOKEN_SERVICE } from './application/ports/refresh-token-service
 import { TOKEN_ISSUER } from './application/ports/token-issuer.js';
 import { AuthenticateAccountUseCase } from './application/use-cases/authenticate-account.use-case.js';
 import { GetCurrentAccountUseCase } from './application/use-cases/get-current-account.use-case.js';
+import { ListAccountsUseCase } from './application/use-cases/list-accounts.use-case.js';
 import { LogoutUseCase } from './application/use-cases/logout.use-case.js';
 import { RefreshSessionUseCase } from './application/use-cases/refresh-session.use-case.js';
 import { RegisterTenantUseCase } from './application/use-cases/register-tenant.use-case.js';
@@ -28,6 +29,7 @@ import { KnexAccountRepository } from './infrastructure/persistence/knex-account
 import { KnexPasswordResetTokenRepository } from './infrastructure/persistence/knex-password-reset-token.repository.js';
 import { KnexRefreshTokenRepository } from './infrastructure/persistence/knex-refresh-token.repository.js';
 import { KnexTenantRepository } from './infrastructure/persistence/knex-tenant.repository.js';
+import { AccountsController } from './presentation/http/accounts.controller.js';
 import { AuthCookieService } from './presentation/http/auth-cookie.service.js';
 import { AuthController } from './presentation/http/auth.controller.js';
 import { JwtAuthGuard } from './presentation/http/guards/jwt-auth.guard.js';
@@ -45,13 +47,14 @@ import { PasswordResetController } from './presentation/http/password-reset.cont
       ],
     }),
   ],
-  controllers: [AuthController, PasswordResetController],
+  controllers: [AuthController, PasswordResetController, AccountsController],
   providers: [
     RegisterTenantUseCase,
     AuthenticateAccountUseCase,
     RefreshSessionUseCase,
     LogoutUseCase,
     GetCurrentAccountUseCase,
+    ListAccountsUseCase,
     RequestPasswordResetUseCase,
     ValidatePasswordResetTokenUseCase,
     ResetPasswordUseCase,

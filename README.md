@@ -160,6 +160,40 @@ log da API. Para usar SMTP, configure `MAIL_TRANSPORT=smtp` e as variáveis
 `SMTP_*`. O `docker compose` sobe o Mailpit em `http://localhost:8025` para
 inspecionar os e-mails em desenvolvimento.
 
+### Contas
+
+`GET /v1/accounts` lista as contas do tenant autenticado. Requer
+`Authorization: Bearer <accessToken>`.
+
+| Parâmetro | Tipo   | Descrição                                     |
+| --------- | ------ | --------------------------------------------- |
+| `limit`   | number | Itens por página, entre 1 e 100. Padrão `20`. |
+| `offset`  | number | Itens a pular, a partir de 0. Padrão `0`.     |
+| `name`    | string | Busca parcial e case-insensitive por nome.    |
+| `email`   | string | Busca parcial e case-insensitive por e-mail.  |
+
+Os filtros podem ser combinados com AND. A resposta é paginada:
+
+```json
+{
+  "data": [
+    {
+      "id": "acc_AaFXJKFudkiOtV8yn8ts-g",
+      "name": "João",
+      "email": "joao@exemplo.com"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "offset": 0,
+    "total": 1
+  }
+}
+```
+
+O `tenantId` nunca vem da query string: ele é extraído do access token, então
+uma conta só enxerga as demais contas do próprio tenant.
+
 ## Scripts
 
 | Comando            | Descrição                        |
@@ -202,8 +236,8 @@ está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
-accounts, autenticação e reset de senha) já estão implementados. As demais funcionalidades de
-negócio ainda não foram implementadas.
+accounts, autenticação, reset de senha e listagem de contas) já estão implementados. As demais
+funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
