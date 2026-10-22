@@ -1,0 +1,368 @@
+# Serviço Certo — contexto do projeto
+
+> Fonte de verdade para agentes e desenvolvedores. Atualize este arquivo quando
+> uma decisão estrutural mudar.
+
+## Visão geral
+
+**Serviço Certo** é um sistema open source de Ordens de Serviço para pequenos
+negócios. O objetivo é registrar serviços prestados, emitir nota e gerenciar
+estoque. O projeto também é usado para discutir uma visão pragmática de IA no
+desenvolvimento: velocidade, qualidade e segurança.
+
+O repositório é um **monorepo** com API NestJS e frontend Next.js. O backend
+segue **Clean Architecture** em um modular monolith.
+
+## Stack
+
+| Área      | Tecnologia                                                    |
+| --------- | ------------------------------------------------------------- |
+| Monorepo  | pnpm workspaces + Turborepo                                   |
+| Backend   | NestJS 12 (ESM-only), TypeScript 6.0.3                        |
+| Frontend  | Next.js 16 (App Router), React 19, Tailwind CSS v4, shadcn/ui |
+| Banco     | Knex 3 + SQLite (dev/testes) + PostgreSQL (produção)          |
+| Auth      | JWT (`jose`), argon2id, cookie httpOnly                       |
+| Validação | Zod 4 em `packages/contracts` + pipe próprio na API           |
+| Testes    | Vitest 5; Supertest nos e2e                                   |
+| Qualidade | ESLint 10 flat config, Prettier, TypeScript                   |
+
+## Estrutura
+
+```text
+apps/
+├─ api/                         # NestJS
+│  └─ src/
+│     ├─ app.module.ts
+│     ├─ app.setup.ts           # prefixo v1, pipes, filtro, CORS, Swagger
+│     ├─ database/              # Knex, migrations, seeds, CLI
+│     ├─ health/
+│     ├─ modules/
+│     │  ├─ identity/           # tenants, accounts, auth, password reset
+│     │  └─ customers/          # CRUD de clientes
+│     └─ shared/                # ports, erros, filtros, IDs, UoW, database helpers
+├─ web/                         # Next.js (apenas placeholder por enquanto)
+packages/
+├─ config/                      # presets de TS, ESLint, Prettier, tema Tailwind
+└─ contracts/                   # schemas Zod e tipos compartilhados (ESM)
+infra/docker-compose.yml        # PostgreSQL + Mailpit
+```
+
+## Comandos
+
+```bash
+pnpm install
+cp .env.example .env
+pnpm db:migrate          # SQLite local em apps/api/.data/dev.sqlite
+pnpm dev                 # API :3001 + web :3000
+pnpm lint
+pnpm typecheck
+pnpm test                # todos os pacotes via Turbo
+pnpm build
+pnpm format
+```
+
+Produção:
+
+```bash
+pnpm build
+NODE_ENV=production DATABASE_URL=postgres://... pnpm db:migrate:prod
+```
+
+Migrations também têm `db:rollback`, `db:seed` e variantes `:prod`.
+Docker: `docker compose -f infra/docker-compose.yml up -d` sobe PostgreSQL e
+Mailpit (SMTP 1025, UI http://localhost:8025).
+
+## Regras de arquitetura (Clean Architecture)
+
+Cada contexto em `apps/api/src/modules/<contexto>` tem:
+
+```text
+domain/           # entidades, VOs, erros e interfaces de repositório — TS puro
+application/      # use cases, ports, tipos de aplicação
+infrastructure/   # Knex, argon2, JWT, mailers, mappers
+presentation/     # controllers, guards, decorators, presenters, Swagger
+<contexto>.module.ts
+```
+
+Regra de dependência:
+
+```text
+presentation ──▶ application ──▶ domain
+infrastructure ─▶ application ──▶ domain
+```
+
+- `domain` **não** importa Nest, Knex, zod ou detalhes externos.
+- `application` não importa infraestrutura nem presentation.
+- `infrastructure` e `presentation` dependem para dentro.
+- A composição/DI acontece no `<contexto>.module.ts`.
+- Comunicação entre contextos deve usar ports/eventos, não importar a
+  infraestrutura de outro contexto.
+
+### Shared
+
+- `src/shared/application/ports`: `Clock`, `IdGenerator`, `UnitOfWork`.
+- `src/shared/infrastructure`: `SystemClock`, `UuidV7Generator`,
+  `KnexUnitOfWork` (AsyncLocalStorage).
+- `src/shared/shared.module.ts` é global.
+- `DatabaseModule` é global e fornece o token `KNEX`.
+- `src/shared/database`: helpers de data, `escapeLike`, unique violation.
+- `src/shared/errors/app-error.ts`: base dos erros de domínio/aplicação.
+- `src/shared/filters/all-exceptions.filter.ts`: envelope de erro e mapa de
+  códigos para HTTP.
+- `src/shared/ids/public-id.ts`: codec de IDs públicos.
+
+## Multi-tenancy
+
+- Todo dado de negócio tem `tenant_id`.
+- O `tenantId` **sempre** vem do JWT, nunca do body/query/path.
+- Repositórios são escopados por tenant; consultas cross-tenant devem retornar
+  `404`.
+- O login resolve o tenant pelo `domain` (slug único do tenant).
+- E-mail é único **por tenant**.
+- `domain` do tenant é um slug lowercase (3–63, `[a-z0-9-]`, reservados:
+  `www`, `api`, `app`, `admin`, `docs`, `mail`, `support`, `billing`, `status`).
+
+## IDs públicos
+
+Formato:
+
+```text
+{prefixo}_{base64url(16 bytes do UUIDv7)}
+```
+
+- Payload de 22 caracteres; ID final de 26 com prefixo.
+- Prefixos atuais em `PUBLIC_ID_PREFIXES`:
+  - `ten` → tenant
+  - `acc` → account
+  - `cus` → customer
+- Banco guarda UUIDv7 puro; o prefixo existe apenas na borda HTTP.
+- `encodePublicId`/`decodePublicId` em `src/shared/ids/public-id.ts`.
+- `decodePublicId` valida prefixo, base64url canônico, UUIDv7 e variante.
+- Não usar `split('_')`: o payload base64url pode conter `_`.
+- Nos controllers: `@Param('id', new ZodValidationPipe(customerIdSchema))` e
+  `decodePublicId(...)`.
+
+## Autenticação e identidade
+
+### Modelo
+
+- `tenants`: id, name, domain, timestamps.
+- `accounts`: id, tenant_id, name, email, password_hash, status, timestamps.
+- Sem papéis/roles nesta etapa: todas as contas do tenant são equivalentes.
+- E-mail único por tenant (`unique (tenant_id, email)`).
+- Senha com **argon2id** (memória 19456 KiB, timeCost 2, parallelism 1).
+- `PasswordHash` exige prefixo `$argon2id$`.
+
+### Sessão
+
+- Access token JWT HS256, 15 min, claims `sub` (accountId) e `tid` (tenantId),
+  com `jti`.
+- Refresh token opaco (32 bytes base64url), salvo como SHA-256, validade 7 dias,
+  em cookie `httpOnly`, `secure` em produção, `sameSite=lax`, path `/v1/auth`.
+- Rotação de refresh e detecção de reuso; reutilização revoga a família.
+- Logout revoga o refresh atual.
+- `JwtAuthGuard` carrega a conta e valida:
+  - existência da conta;
+  - `account.tenantId === tid`;
+  - status `ACTIVE` (bloqueada → `403 ACCOUNT_BLOCKED`).
+- Toda request protegida faz uma consulta de conta (custo aceitável).
+- `IdentityModule` exporta `JwtAuthGuard`, `TOKEN_ISSUER` e `ACCOUNT_REPOSITORY`
+  para outros módulos que usam o guard.
+
+### Rotas de auth
+
+```text
+POST /v1/auth/register
+POST /v1/auth/login
+POST /v1/auth/refresh
+POST /v1/auth/logout
+GET  /v1/auth/me
+
+POST /v1/auth/password-reset/request
+POST /v1/auth/password-reset/validate
+POST /v1/auth/password-reset/confirm
+```
+
+- Registro cria tenant + primeira conta em transação.
+- Login: `{ tenantDomain, email, password }`; conta bloqueada retorna
+  `INVALID_CREDENTIALS`.
+- Reset: token de 30 min, uso único, apenas SHA-256 no banco; solicitar invalida
+  tokens anteriores; confirmar revoga todos os refresh tokens da conta.
+- `request` sempre retorna `204` (anti-enumeração); rate limit 3/15 min por IP.
+- `validate` não consome o token; retorna conta/tenant/`expiresAt`.
+- Mailer: `MAIL_TRANSPORT=console` (padrão) ou `smtp` (Nodemailer/Mailpit).
+
+## Contas (accounts)
+
+Rotas:
+
+```text
+POST   /v1/accounts
+GET    /v1/accounts?limit&offset&name&email
+PATCH  /v1/accounts/:id
+PATCH  /v1/accounts/:id/status
+```
+
+- `POST`: `{ name, email, password }`; e-mail único por tenant; conta `ACTIVE`.
+- `GET`: paginação (`limit` 1–100 padrão 20, `offset` padrão 0) e filtros
+  parciais case-insensitive por `name`/`email`; retorna `{ data, meta }`.
+- `PATCH`: `name`, `email`, `password` todos opcionais (PATCH real), ao menos um;
+  body `.strict()`; e-mail único por tenant; trocar senha revoga refresh tokens.
+- `PATCH /status`: `{ status: "ACTIVE" | "BLOCKED" }`; bloquear revoga refresh
+  tokens, invalida access tokens no próximo request e impede login; não permite
+  auto-bloqueio (`409 CANNOT_BLOCK_SELF`).
+- A resposta `accountSchema` inclui `status`.
+
+## Clientes (customers)
+
+Rotas:
+
+```text
+POST   /v1/customers
+GET    /v1/customers?limit&offset&name&document
+PATCH  /v1/customers/:id
+DELETE /v1/customers/:id
+```
+
+- `name` é o único campo obrigatório.
+- `address`, `document`, `documentType`, `phoneNumber` opcionais.
+- `document` e `documentType` devem ser enviados juntos.
+- `documentType`: `CPF` ou `CNPJ`.
+- CPF: 11 dígitos + dígitos verificadores.
+- CNPJ: numérico ou **alfanumérico** (12 caracteres `[A-Z0-9]` + 2 dígitos),
+  com dígitos verificadores.
+- Documento normalizado (uppercase/dígitos), sem pontuação, na resposta, junto
+  de `documentType`.
+- `phoneNumber` normalizado para 10–11 dígitos.
+- Documento único por tenant entre clientes não excluídos, via índice único
+  parcial `(tenant_id, document) where document is not null and deleted_at is null`.
+- **Soft delete** (`deleted_at`); cliente excluído some da listagem e retorna
+  `404` em edição/exclusão; o documento pode ser reutilizado.
+- Listagem com paginação e filtros `name`/`document`; resposta `{ data, meta }`.
+- PATCH aceita `null` em `address`, `document`, `documentType`, `phoneNumber`
+  para limpar; `document`/`documentType` devem ser enviados juntos.
+- Migration `006` inclui check constraint de consistência
+  documento/tipo/tamanho.
+
+## Banco de dados
+
+- Knex + SQLite (dev/testes) e PostgreSQL (prod).
+- Migrations em `apps/api/src/database/migrations` (001–006):
+  001 tenants, 002 accounts, 003 refresh_tokens, 004 password_reset_tokens,
+  005 account status, 006 customers.
+- UUIDv7 gerado na aplicação (`uuid`), timestamps na aplicação (`Clock`).
+- Dinheiro deve ser armazenado em **centavos (integer)**.
+- SQLite: pool min/max 1 e `PRAGMA foreign_keys = ON` via `pool.afterCreate`.
+- Evitar SQL específico de dialeto; índices parciais e `CHECK` funcionam nos dois.
+- **Não usar enum nativo do PostgreSQL**: o projeto precisa de paridade com
+  SQLite. Preferir `varchar`/`text` + `CHECK` ou validação na aplicação.
+- Migrations de produção usam `dist` e extensão `.js`; dev/testes usam `src` e
+  `.ts`.
+- Testes executam migrations diretamente via `test/helpers/migrate.ts` para não
+  depender do loader de TS do Knex no Vitest.
+
+## Contracts e validação
+
+- `packages/contracts` é **ESM**.
+- Schemas Zod por contexto em `packages/contracts/src/<contexto>`.
+- Tipos derivados com `z.infer`; não duplicar DTOs.
+- API usa `ZodValidationPipe` próprio (nestjs-zod não é compatível com Nest 12).
+- Swagger usa `toOpenApiSchema` (Zod → OpenAPI 3.0) para request/response.
+- Envelope de erro:
+
+```json
+{
+  "error": {
+    "code": "INVALID_DOCUMENT",
+    "message": "Documento inválido",
+    "details": [],
+    "path": "/v1/customers",
+    "timestamp": "2026-10-22T00:00:00.000Z"
+  }
+}
+```
+
+- Erros de domínio/aplicação estendem `AppError` com `code`; o filtro global
+  mapeia código → HTTP. Erros de validação Zod → `VALIDATION_ERROR` 400.
+
+## Convenções de código
+
+- Código e nomes de domínio em **inglês**; textos de UI/erros em **pt-BR**.
+- API é **ESM**: `"type": "module"`, `module/moduleResolution: NodeNext`,
+  imports relativos com `.js`.
+- Usar `@Inject(TOKEN)` explícito em dependências de interfaces/classes em que o
+  lint ou o ESM exijam (evita depender de metadata em runtime).
+- Value objects/entidades validam invariantes; use cases orquestram; controllers
+  não contêm regra de negócio.
+- Datas em UTC; dinheiro em centavos.
+- Não retornar `password_hash`, tokens ou dados sensíveis.
+- Não logar tokens/senhas; o `ConsoleMailer` só loga link em dev.
+- Não confiar em `tenantId` vindo do cliente.
+- Body de PATCH/update usa `.strict()` e exige ao menos um campo.
+- Filtros parciais usam `LOWER(...) LIKE ? ESCAPE '\'` + `escapeLike`.
+- Paginação sempre `{ data, meta: { limit, offset, total } }`.
+
+## Testes
+
+- Vitest, ambiente `node` na API; `jsdom` + Testing Library no web.
+- API usa SQLite `:memory:` por arquivo de teste e migrations reais.
+- `test/helpers/migrate.ts` deve ser atualizado ao adicionar migration.
+- E2E usam Supertest, `configureApp` e agents quando precisam de cookie.
+- `test/setup.ts` define env de teste (JWT_SECRET, TTLs, rate limit alto,
+  `MAIL_TRANSPORT=console`, `COOKIE_DOMAIN=''`).
+- Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
+- Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
+  reais.
+- Estado atual: 88 testes na API + 1 no web. Sempre manter lint, typecheck,
+  test e build verdes.
+
+## Frontend
+
+- Next.js App Router; por enquanto só a página placeholder.
+- Tailwind v4 + shadcn/ui configurado; componentes em `shared/ui`.
+- `apps/web/src/modules` espelha os contextos da API.
+- Client HTTP em `shared/lib/api-client.ts` (credentials include).
+- Ainda faltam: telas de login/registro, recuperação de senha, contas e clientes.
+- A página `/reset-password` mencionada nos e-mails ainda não existe.
+- Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
+
+## Decisões importantes já tomadas
+
+- Next = frontend; Nest = API.
+- Knex + SQLite dev + PostgreSQL prod.
+- Multi-tenant desde o início; e-mail único por tenant.
+- `domain` do tenant é slug único.
+- Sem roles por enquanto; todas as contas do tenant têm os mesmos poderes.
+- Access token JWT curto; refresh opaco com rotação/reuso.
+- IDs públicos prefixados derivados de UUIDv7 (16 bytes, 22 chars base64url).
+- Reset de senha sempre responde `204` na solicitação (anti-enumeração).
+- Conta bloqueada é rejeitada imediatamente no guard.
+- Clientes: soft delete, somente `name` obrigatório, `documentType` explícito.
+- Sem enum nativo Postgres; paridade SQLite/Postgres.
+- Rate limit atual: 3/15 min por IP na solicitação de reset.
+
+## Próximos passos naturais
+
+1. Telas de auth (login, registro, reset) e clientes no frontend.
+2. Papéis/permissões (OWNER/STAFF) e convite de contas.
+3. Ordens de serviço.
+4. Estoque e movimentações.
+5. Faturamento/nota (port + adapter, provedor depois).
+6. Hardening: rate limit global, observabilidade, revogação imediata de access
+   token via `tokenVersion`, auditoria.
+
+## Checklist antes de finalizar uma mudança
+
+```bash
+pnpm format
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+- Atualizar contracts e Swagger quando a API mudar.
+- Atualizar README e este `AGENTS.md` quando uma decisão estrutural mudar.
+- Criar migration e atualizar `test/helpers/migrate.ts` juntos.
+- Validar migrations no SQLite e, quando possível, no PostgreSQL.
+- Não commitar `.env`, `.data`, `dist`, `.next` ou tokens.

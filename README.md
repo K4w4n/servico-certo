@@ -421,6 +421,12 @@ Tem uma ideia, dúvida ou sugestão? Compartilhe!
 - Abra uma [issue](https://github.com/K4w4n/servico-certo/issues) com sua proposta.
 - Ou me chame para conversar.
 
+## Contexto para agentes
+
+As instruções persistentes do projeto para agentes de IA estão em
+[`AGENTS.md`](AGENTS.md): stack, arquitetura, decisões, convenções, comandos e
+checklist de validação.
+
 ## Licença
 
 A definir — o projeto é open source e a licença será publicada em breve.
