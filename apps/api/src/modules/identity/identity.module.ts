@@ -15,6 +15,7 @@ import { RefreshSessionUseCase } from './application/use-cases/refresh-session.u
 import { RegisterTenantUseCase } from './application/use-cases/register-tenant.use-case.js';
 import { RequestPasswordResetUseCase } from './application/use-cases/request-password-reset.use-case.js';
 import { ResetPasswordUseCase } from './application/use-cases/reset-password.use-case.js';
+import { UpdateAccountStatusUseCase } from './application/use-cases/update-account-status.use-case.js';
 import { UpdateAccountUseCase } from './application/use-cases/update-account.use-case.js';
 import { ValidatePasswordResetTokenUseCase } from './application/use-cases/validate-password-reset-token.use-case.js';
 import { ACCOUNT_REPOSITORY } from './domain/repositories/account.repository.js';
@@ -58,6 +59,7 @@ import { PasswordResetController } from './presentation/http/password-reset.cont
     GetCurrentAccountUseCase,
     CreateAccountUseCase,
     UpdateAccountUseCase,
+    UpdateAccountStatusUseCase,
     ListAccountsUseCase,
     RequestPasswordResetUseCase,
     ValidatePasswordResetTokenUseCase,

@@ -1,4 +1,5 @@
 import { InvalidAccountNameError } from '../errors/identity.errors.js';
+import type { AccountStatus } from '../value-objects/account-status.js';
 import type { Email } from '../value-objects/email.js';
 import type { PasswordHash } from '../value-objects/password-hash.js';
 
@@ -8,6 +9,7 @@ export type AccountProps = {
   name: string;
   email: Email;
   passwordHash: PasswordHash;
+  status: AccountStatus;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -29,6 +31,7 @@ export class Account {
       name: normalizeAccountName(input.name),
       email: input.email,
       passwordHash: input.passwordHash,
+      status: 'ACTIVE',
       createdAt: input.now,
       updatedAt: input.now,
     });
@@ -58,6 +61,14 @@ export class Account {
     return this.props.passwordHash;
   }
 
+  get status(): AccountStatus {
+    return this.props.status;
+  }
+
+  get isBlocked(): boolean {
+    return this.props.status === 'BLOCKED';
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -78,6 +89,16 @@ export class Account {
 
   changePassword(passwordHash: PasswordHash, now: Date): void {
     this.props.passwordHash = passwordHash;
+    this.props.updatedAt = now;
+  }
+
+  block(now: Date): void {
+    this.props.status = 'BLOCKED';
+    this.props.updatedAt = now;
+  }
+
+  unblock(now: Date): void {
+    this.props.status = 'ACTIVE';
     this.props.updatedAt = now;
   }
 }

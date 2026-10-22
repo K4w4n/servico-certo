@@ -70,7 +70,7 @@ export class ResetPasswordUseCase {
 
       const account = await this.accounts.findById(token.accountId);
 
-      if (!account) {
+      if (!account || account.isBlocked) {
         return { status: 'invalid' };
       }
 

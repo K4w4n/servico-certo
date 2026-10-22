@@ -1,5 +1,6 @@
 import { toDate } from '../../../../shared/database/date.js';
 import { Account } from '../../domain/entities/account.js';
+import { isAccountStatus } from '../../domain/value-objects/account-status.js';
 import { Email } from '../../domain/value-objects/email.js';
 import { PasswordHash } from '../../domain/value-objects/password-hash.js';
 
@@ -9,6 +10,7 @@ export type AccountRow = {
   name: string;
   email: string;
   password_hash: string;
+  status: string;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -21,6 +23,7 @@ export const accountMapper = {
       name: row.name,
       email: Email.create(row.email),
       passwordHash: PasswordHash.create(row.password_hash),
+      status: isAccountStatus(row.status) ? row.status : 'ACTIVE',
       createdAt: toDate(row.created_at),
       updatedAt: toDate(row.updated_at),
     });
@@ -33,6 +36,7 @@ export const accountMapper = {
       name: account.name,
       email: account.email.value,
       password_hash: account.passwordHash.value,
+      status: account.status,
       created_at: account.createdAt,
       updated_at: account.updatedAt,
     };

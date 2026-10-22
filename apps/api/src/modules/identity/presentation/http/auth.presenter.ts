@@ -18,6 +18,7 @@ export function toAccountResponse(account: Account): AccountResponse {
     id: encodePublicId(PUBLIC_ID_PREFIXES.account, account.id),
     name: account.name,
     email: account.email.value,
+    status: account.status,
   };
 }
 

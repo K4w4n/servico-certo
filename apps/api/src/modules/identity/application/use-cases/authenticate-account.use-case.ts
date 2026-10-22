@@ -77,6 +77,10 @@ export class AuthenticateAccountUseCase {
       throw new InvalidCredentialsError();
     }
 
+    if (account.isBlocked) {
+      throw new InvalidCredentialsError();
+    }
+
     return this.createSession(account, tenant);
   }
 

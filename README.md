@@ -162,13 +162,14 @@ inspecionar os e-mails em desenvolvimento.
 
 ### Contas
 
-| Método  | Rota               | Descrição                                     |
-| ------- | ------------------ | --------------------------------------------- |
-| `POST`  | `/v1/accounts`     | Cria uma conta no tenant autenticado          |
-| `GET`   | `/v1/accounts`     | Lista as contas do tenant autenticado         |
-| `PATCH` | `/v1/accounts/:id` | Atualiza nome, e-mail e/ou senha de uma conta |
+| Método  | Rota                      | Descrição                                     |
+| ------- | ------------------------- | --------------------------------------------- |
+| `POST`  | `/v1/accounts`            | Cria uma conta no tenant autenticado          |
+| `GET`   | `/v1/accounts`            | Lista as contas do tenant autenticado         |
+| `PATCH` | `/v1/accounts/:id`        | Atualiza nome, e-mail e/ou senha de uma conta |
+| `PATCH` | `/v1/accounts/:id/status` | Bloqueia ou desbloqueia uma conta             |
 
-As três rotas exigem `Authorization: Bearer <accessToken>`.
+As quatro rotas exigem `Authorization: Bearer <accessToken>`.
 
 **Criar conta**
 
@@ -190,7 +191,8 @@ Resposta `201`:
 {
   "id": "acc_AaFXJKFudkiOtV8yn8ts-g",
   "name": "Maria Silva",
-  "email": "maria@exemplo.com"
+  "email": "maria@exemplo.com",
+  "status": "ACTIVE"
 }
 ```
 
@@ -228,6 +230,29 @@ ACCOUNT_NOT_FOUND`.
 
 Resposta `200` com a conta atualizada.
 
+**Bloquear/desbloquear conta**
+
+```http
+PATCH /v1/accounts/acc_AaFXJKFudkiOtV8yn8ts-g/status
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "status": "BLOCKED"
+}
+```
+
+Use `"status": "ACTIVE"` para desbloquear. A operação é idempotente.
+
+- Bloquear revoga todos os refresh tokens da conta.
+- Access tokens existentes passam a ser recusados imediatamente pelo guard com
+  `403 ACCOUNT_BLOCKED`.
+- O login de uma conta bloqueada retorna `401 INVALID_CREDENTIALS`.
+- Desbloquear permite o login novamente.
+- Não é possível bloquear a própria conta (`409 CANNOT_BLOCK_SELF`).
+- A conta precisa pertencer ao tenant do token (`404 ACCOUNT_NOT_FOUND`).
+- A resposta `200` inclui o campo `status` atualizado.
+
 **Listar contas**
 
 `GET /v1/accounts` lista as contas do tenant autenticado.
@@ -247,7 +272,8 @@ Os filtros podem ser combinados com AND. A resposta é paginada:
     {
       "id": "acc_AaFXJKFudkiOtV8yn8ts-g",
       "name": "João",
-      "email": "joao@exemplo.com"
+      "email": "joao@exemplo.com",
+      "status": "ACTIVE"
     }
   ],
   "meta": {
@@ -303,7 +329,7 @@ está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
-accounts, autenticação, reset de senha, criação, listagem e edição de contas) já estão
+accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas) já estão
 implementados. As demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática

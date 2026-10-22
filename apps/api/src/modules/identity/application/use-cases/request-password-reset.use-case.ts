@@ -68,7 +68,7 @@ export class RequestPasswordResetUseCase {
 
     const account = await this.accounts.findByTenantAndEmail(tenant.id, email.value);
 
-    if (!account) {
+    if (!account || account.isBlocked) {
       return;
     }
 

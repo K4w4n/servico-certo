@@ -14,10 +14,13 @@ export const passwordSchema = z
 
 export const accountNameSchema = z.string().trim().min(1).max(120);
 
+export const accountStatusSchema = z.enum(['ACTIVE', 'BLOCKED']);
+
 export const accountSchema = z.object({
   id: accountIdSchema,
   name: z.string().min(1).max(120),
   email: z.string(),
+  status: accountStatusSchema,
 });
 
 export const createAccountSchema = z.object({
@@ -41,6 +44,12 @@ export const updateAccountSchema = z
     },
   );
 
+export const updateAccountStatusSchema = z
+  .object({
+    status: accountStatusSchema,
+  })
+  .strict();
+
 export const listAccountsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
@@ -54,7 +63,9 @@ export const listAccountsResponseSchema = z.object({
 });
 
 export type Account = z.infer<typeof accountSchema>;
+export type AccountStatus = z.infer<typeof accountStatusSchema>;
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
+export type UpdateAccountStatusInput = z.infer<typeof updateAccountStatusSchema>;
 export type ListAccountsQuery = z.infer<typeof listAccountsQuerySchema>;
 export type ListAccountsResponse = z.infer<typeof listAccountsResponseSchema>;

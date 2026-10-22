@@ -26,21 +26,26 @@ import {
   listAccountsQuerySchema,
   listAccountsResponseSchema,
   updateAccountSchema,
+  updateAccountStatusSchema,
   type Account as AccountResponse,
   type CreateAccountInput,
   type ListAccountsQuery,
   type ListAccountsResponse,
   type UpdateAccountInput,
+  type UpdateAccountStatusInput,
 } from '@servico-certo/contracts';
 import { CreateAccountUseCase } from '../../application/use-cases/create-account.use-case.js';
 import { ListAccountsUseCase } from '../../application/use-cases/list-accounts.use-case.js';
+import { UpdateAccountStatusUseCase } from '../../application/use-cases/update-account-status.use-case.js';
 import { UpdateAccountUseCase } from '../../application/use-cases/update-account.use-case.js';
 import { decodePublicId } from '../../../../shared/ids/public-id.js';
 import { toListAccountsResponse } from './accounts.presenter.js';
 import { toAccountResponse } from './auth.presenter.js';
+import { CurrentAccount } from './decorators/current-account.decorator.js';
 import { TenantId } from './decorators/tenant-id.decorator.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { toOpenApiSchema } from './openapi.js';
+import type { AuthenticatedAccount } from './types/authenticated-request.js';
 import { ZodValidationPipe } from './zod-validation.pipe.js';
 
 @ApiTags('accounts')
@@ -52,6 +57,8 @@ export class AccountsController {
     @Inject(ListAccountsUseCase) private readonly listAccounts: ListAccountsUseCase,
     @Inject(CreateAccountUseCase) private readonly createAccount: CreateAccountUseCase,
     @Inject(UpdateAccountUseCase) private readonly updateAccount: UpdateAccountUseCase,
+    @Inject(UpdateAccountStatusUseCase)
+    private readonly updateAccountStatus: UpdateAccountStatusUseCase,
   ) {}
 
   @Post()
@@ -135,6 +142,54 @@ export class AccountsController {
       ...(body.name !== undefined ? { name: body.name } : {}),
       ...(body.email !== undefined ? { email: body.email } : {}),
       ...(body.password !== undefined ? { password: body.password } : {}),
+    });
+
+    return toAccountResponse(account);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Bloqueia ou desbloqueia uma conta' })
+  @ApiParam({
+    name: 'id',
+    example: 'acc_AaFXJKFudkiOtV8yn8ts-g',
+    description: 'ID público da conta',
+  })
+  @ApiBody({
+    schema: toOpenApiSchema(updateAccountStatusSchema),
+    examples: {
+      block: {
+        summary: 'Bloquear',
+        value: { status: 'BLOCKED' },
+      },
+      unblock: {
+        summary: 'Desbloquear',
+        value: { status: 'ACTIVE' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Status atualizado',
+    schema: toOpenApiSchema(accountSchema, 'output'),
+  })
+  @ApiResponse({ status: 400, description: 'Dados inválidos' })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
+  @ApiResponse({ status: 404, description: 'Conta não encontrada' })
+  @ApiResponse({
+    status: 409,
+    description: 'Não é possível bloquear a própria conta',
+  })
+  async updateStatus(
+    @Param('id', new ZodValidationPipe(accountIdSchema)) id: string,
+    @Body(new ZodValidationPipe(updateAccountStatusSchema))
+    body: UpdateAccountStatusInput,
+    @CurrentAccount() currentAccount: AuthenticatedAccount,
+  ): Promise<AccountResponse> {
+    const account = await this.updateAccountStatus.execute({
+      tenantId: currentAccount.tenantId,
+      accountId: decodePublicId(PUBLIC_ID_PREFIXES.account, id),
+      status: body.status,
+      requestingAccountId: currentAccount.id,
     });
 
     return toAccountResponse(account);

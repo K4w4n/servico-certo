@@ -45,7 +45,7 @@ export class ValidatePasswordResetTokenUseCase {
 
     const account = await this.accounts.findById(token.accountId);
 
-    if (!account) {
+    if (!account || account.isBlocked) {
       throw new InvalidResetTokenError();
     }
 

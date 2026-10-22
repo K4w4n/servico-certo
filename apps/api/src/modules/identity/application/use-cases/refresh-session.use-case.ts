@@ -75,6 +75,11 @@ export class RefreshSessionUseCase {
         return { status: 'invalid' };
       }
 
+      if (account.isBlocked) {
+        await this.refreshTokens.revokeFamily(current.familyId, now);
+        return { status: 'invalid' };
+      }
+
       const tenant = await this.tenants.findById(account.tenantId);
 
       if (!tenant) {

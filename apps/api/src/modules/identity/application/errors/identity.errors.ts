@@ -63,3 +63,11 @@ export class AccountNotFoundError extends AppError {
     super(message);
   }
 }
+
+export class CannotBlockSelfError extends AppError {
+  readonly code = 'CANNOT_BLOCK_SELF';
+
+  constructor(message = 'Você não pode bloquear sua própria conta') {
+    super(message);
+  }
+}
