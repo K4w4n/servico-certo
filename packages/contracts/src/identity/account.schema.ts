@@ -20,6 +20,12 @@ export const accountSchema = z.object({
   email: z.string(),
 });
 
+export const createAccountSchema = z.object({
+  name: accountNameSchema,
+  email: emailSchema,
+  password: passwordSchema,
+});
+
 export const listAccountsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
@@ -33,5 +39,6 @@ export const listAccountsResponseSchema = z.object({
 });
 
 export type Account = z.infer<typeof accountSchema>;
+export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type ListAccountsQuery = z.infer<typeof listAccountsQuerySchema>;
 export type ListAccountsResponse = z.infer<typeof listAccountsResponseSchema>;

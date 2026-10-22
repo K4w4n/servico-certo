@@ -1,13 +1,26 @@
-import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Inject, Post, Query, UseGuards } from '@nestjs/common';
 import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  accountSchema,
+  createAccountSchema,
   listAccountsQuerySchema,
   listAccountsResponseSchema,
+  type Account as AccountResponse,
+  type CreateAccountInput,
   type ListAccountsQuery,
   type ListAccountsResponse,
 } from '@servico-certo/contracts';
+import { CreateAccountUseCase } from '../../application/use-cases/create-account.use-case.js';
 import { ListAccountsUseCase } from '../../application/use-cases/list-accounts.use-case.js';
 import { toListAccountsResponse } from './accounts.presenter.js';
+import { toAccountResponse } from './auth.presenter.js';
 import { TenantId } from './decorators/tenant-id.decorator.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { toOpenApiSchema } from './openapi.js';
@@ -18,7 +31,46 @@ import { ZodValidationPipe } from './zod-validation.pipe.js';
 @Controller('accounts')
 @UseGuards(JwtAuthGuard)
 export class AccountsController {
-  constructor(@Inject(ListAccountsUseCase) private readonly listAccounts: ListAccountsUseCase) {}
+  constructor(
+    @Inject(ListAccountsUseCase) private readonly listAccounts: ListAccountsUseCase,
+    @Inject(CreateAccountUseCase) private readonly createAccount: CreateAccountUseCase,
+  ) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Cria uma conta no tenant autenticado' })
+  @ApiBody({
+    schema: toOpenApiSchema(createAccountSchema),
+    examples: {
+      default: {
+        value: {
+          name: 'Maria Silva',
+          email: 'maria@exemplo.com',
+          password: 'senha-super-segura',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Conta criada',
+    schema: toOpenApiSchema(accountSchema, 'output'),
+  })
+  @ApiResponse({ status: 400, description: 'Dados inválidos' })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
+  @ApiResponse({ status: 409, description: 'E-mail já está em uso neste tenant' })
+  async create(
+    @Body(new ZodValidationPipe(createAccountSchema)) body: CreateAccountInput,
+    @TenantId() tenantId: string,
+  ): Promise<AccountResponse> {
+    const account = await this.createAccount.execute({
+      tenantId,
+      name: body.name,
+      email: body.email,
+      password: body.password,
+    });
+
+    return toAccountResponse(account);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Lista as contas do tenant com paginação e filtros' })

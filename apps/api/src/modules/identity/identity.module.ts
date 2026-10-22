@@ -7,6 +7,7 @@ import { PASSWORD_RESET_TOKEN_SERVICE } from './application/ports/password-reset
 import { REFRESH_TOKEN_SERVICE } from './application/ports/refresh-token-service.js';
 import { TOKEN_ISSUER } from './application/ports/token-issuer.js';
 import { AuthenticateAccountUseCase } from './application/use-cases/authenticate-account.use-case.js';
+import { CreateAccountUseCase } from './application/use-cases/create-account.use-case.js';
 import { GetCurrentAccountUseCase } from './application/use-cases/get-current-account.use-case.js';
 import { ListAccountsUseCase } from './application/use-cases/list-accounts.use-case.js';
 import { LogoutUseCase } from './application/use-cases/logout.use-case.js';
@@ -54,6 +55,7 @@ import { PasswordResetController } from './presentation/http/password-reset.cont
     RefreshSessionUseCase,
     LogoutUseCase,
     GetCurrentAccountUseCase,
+    CreateAccountUseCase,
     ListAccountsUseCase,
     RequestPasswordResetUseCase,
     ValidatePasswordResetTokenUseCase,

@@ -162,8 +162,48 @@ inspecionar os e-mails em desenvolvimento.
 
 ### Contas
 
-`GET /v1/accounts` lista as contas do tenant autenticado. Requer
-`Authorization: Bearer <accessToken>`.
+| Método | Rota           | Descrição                             |
+| ------ | -------------- | ------------------------------------- |
+| `POST` | `/v1/accounts` | Cria uma conta no tenant autenticado  |
+| `GET`  | `/v1/accounts` | Lista as contas do tenant autenticado |
+
+As duas rotas exigem `Authorization: Bearer <accessToken>`.
+
+**Criar conta**
+
+```http
+POST /v1/accounts
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Maria Silva",
+  "email": "maria@exemplo.com",
+  "password": "senha-super-segura"
+}
+```
+
+Resposta `201`:
+
+```json
+{
+  "id": "acc_AaFXJKFudkiOtV8yn8ts-g",
+  "name": "Maria Silva",
+  "email": "maria@exemplo.com"
+}
+```
+
+- O e-mail é normalizado para lowercase e é único **por tenant**; duplicidade
+  retorna `409 EMAIL_TAKEN`.
+- A senha segue a política mínima de 10 caracteres e é salva com argon2id.
+- A conta é criada no tenant do token; não é possível escolher outro tenant no
+  body.
+- Não há verificação de e-mail nem papéis nesta etapa; a conta já pode fazer
+  login com a senha informada.
+
+**Listar contas**
+
+`GET /v1/accounts` lista as contas do tenant autenticado.
 
 | Parâmetro | Tipo   | Descrição                                     |
 | --------- | ------ | --------------------------------------------- |
@@ -236,8 +276,8 @@ está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
-accounts, autenticação, reset de senha e listagem de contas) já estão implementados. As demais
-funcionalidades de negócio ainda não foram implementadas.
+accounts, autenticação, reset de senha, criação e listagem de contas) já estão implementados. As
+demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
