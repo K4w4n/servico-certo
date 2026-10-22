@@ -27,6 +27,6 @@ infrastructure ─▶ application ──▶ domain
 - O `<module>.module.ts` é o único lugar que conhece todas as camadas e faz a
   composição das dependências.
 
-O contexto `identity` já está implementado com as quatro camadas. Os demais
-contextos estão com as pastas vazias de propósito: o código de cada camada nasce
-junto com a funcionalidade correspondente.
+Os contextos `identity` e `customers` já estão implementados com as quatro
+camadas. Os demais contextos estão com as pastas vazias de propósito: o código de
+cada camada nasce junto com a funcionalidade correspondente.

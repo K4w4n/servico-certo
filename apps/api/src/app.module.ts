@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
+import { CustomersModule } from './modules/customers/customers.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { validateEnv } from './shared/config/env.js';
 import { SharedModule } from './shared/shared.module.js';
@@ -18,6 +19,7 @@ import { SharedModule } from './shared/shared.module.js';
     SharedModule,
     HealthModule,
     IdentityModule,
+    CustomersModule,
   ],
 })
 export class AppModule {}

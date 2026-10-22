@@ -31,7 +31,7 @@ servico-certo/
 │  │  ├─ src/
 │  │  │  ├─ database/       # conexão Knex, migrations e seeds
 │  │  │  ├─ health/         # health check
-│  │  │  ├─ modules/        # contextos de negócio (identity implementado)
+│  │  │  ├─ modules/        # contextos de negócio (identity e customers)
 │  │  │  └─ shared/         # env, filtros e código transversal
 │  │  ├─ test/              # testes e2e
 │  │  └─ knexfile.ts
@@ -103,9 +103,9 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-As migrations `001` a `004` criam as tabelas do contexto de identity
-(`tenants`, `accounts`, `refresh_tokens` e `password_reset_tokens`) e já rodam
-tanto no SQLite quanto no PostgreSQL.
+As migrations `001` a `006` criam as tabelas do identity e de clientes
+(`tenants`, `accounts`, `refresh_tokens`, `password_reset_tokens` e `customers`),
+além do status de accounts, e já rodam tanto no SQLite quanto no PostgreSQL.
 
 O `docker compose` também sobe o **Mailpit**:
 
@@ -287,6 +287,79 @@ Os filtros podem ser combinados com AND. A resposta é paginada:
 O `tenantId` nunca vem da query string: ele é extraído do access token, então
 uma conta só enxerga as demais contas do próprio tenant.
 
+## Clientes
+
+CRUD de clientes, multi-tenant, com validação de CPF e CNPJ.
+
+| Método   | Rota                | Descrição                                        |
+| -------- | ------------------- | ------------------------------------------------ |
+| `POST`   | `/v1/customers`     | Cria um cliente                                  |
+| `GET`    | `/v1/customers`     | Lista com `limit`, `offset`, `name` e `document` |
+| `PATCH`  | `/v1/customers/:id` | Edita os dados do cliente                        |
+| `DELETE` | `/v1/customers/:id` | Exclui logicamente o cliente                     |
+
+Todas exigem `Authorization: Bearer <accessToken>`.
+
+**Campos**
+
+- `name` é o único campo obrigatório.
+- `address`, `document`, `documentType` e `phoneNumber` são opcionais.
+- `document` e `documentType` devem ser enviados juntos.
+- `documentType`: `CPF` ou `CNPJ`.
+- CPF: 11 dígitos com validação dos dígitos verificadores.
+- CNPJ: numérico ou alfanumérico, com validação dos dígitos verificadores.
+- A API aceita documento formatado e devolve normalizado (`document` em
+  dígitos/uppercase + `documentType`).
+- `phoneNumber` é normalizado para dígitos (10 ou 11).
+- O documento é único por tenant entre clientes não excluídos.
+- A exclusão é **soft delete**; o documento pode ser reutilizado depois.
+
+**Criar cliente**
+
+```http
+POST /v1/customers
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Maria Silva",
+  "address": "Rua das Flores, 123",
+  "document": "529.982.247-25",
+  "documentType": "CPF",
+  "phoneNumber": "(11) 99999-8888"
+}
+```
+
+Resposta `201`:
+
+```json
+{
+  "id": "cus_AaFXJKFudkiOtV8yn8ts-g",
+  "name": "Maria Silva",
+  "address": "Rua das Flores, 123",
+  "document": "52998224725",
+  "documentType": "CPF",
+  "phoneNumber": "11999998888"
+}
+```
+
+**Editar cliente**
+
+PATCH com os campos opcionais. Enviar `null` em `address`, `document`,
+`documentType` ou `phoneNumber` limpa o campo. Para alterar o documento, envie
+`document` e `documentType` juntos.
+
+**Listar clientes**
+
+Aceita `limit` (1–100, padrão 20), `offset` (padrão 0), `name` (busca parcial
+case-insensitive) e `document` (busca parcial normalizada). A resposta segue o
+envelope `{ data, meta }`.
+
+**Excluir cliente**
+
+`DELETE /v1/customers/:id` retorna `204`. O cliente deixa de aparecer na
+listagem, mas o registro é preservado para futuras ordens de serviço.
+
 ## Scripts
 
 | Comando            | Descrição                        |
@@ -328,9 +401,10 @@ está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 
 ## Status do projeto
 
-O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
-accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas) já estão
-implementados. As demais funcionalidades de negócio ainda não foram implementadas.
+O projeto está **no início**. O scaffold do monorepo, a API base, o contexto de identity (tenants,
+accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas) e o módulo
+de clientes (CRUD com CPF/CNPJ) já estão implementados. As demais funcionalidades de negócio ainda
+não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
