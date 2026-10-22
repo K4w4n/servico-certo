@@ -66,6 +66,16 @@ export class Account {
     return this.props.updatedAt;
   }
 
+  changeName(name: string, now: Date): void {
+    this.props.name = normalizeAccountName(name);
+    this.props.updatedAt = now;
+  }
+
+  changeEmail(email: Email, now: Date): void {
+    this.props.email = email;
+    this.props.updatedAt = now;
+  }
+
   changePassword(passwordHash: PasswordHash, now: Date): void {
     this.props.passwordHash = passwordHash;
     this.props.updatedAt = now;

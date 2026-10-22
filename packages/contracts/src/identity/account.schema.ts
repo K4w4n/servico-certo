@@ -26,6 +26,21 @@ export const createAccountSchema = z.object({
   password: passwordSchema,
 });
 
+export const updateAccountSchema = z
+  .object({
+    name: accountNameSchema.optional(),
+    email: emailSchema.optional(),
+    password: passwordSchema.optional(),
+  })
+  .strict()
+  .refine(
+    (data) => data.name !== undefined || data.email !== undefined || data.password !== undefined,
+    {
+      message: 'Informe ao menos um campo para atualizar',
+      path: [],
+    },
+  );
+
 export const listAccountsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
@@ -40,5 +55,6 @@ export const listAccountsResponseSchema = z.object({
 
 export type Account = z.infer<typeof accountSchema>;
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
+export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
 export type ListAccountsQuery = z.infer<typeof listAccountsQuerySchema>;
 export type ListAccountsResponse = z.infer<typeof listAccountsResponseSchema>;

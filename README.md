@@ -162,12 +162,13 @@ inspecionar os e-mails em desenvolvimento.
 
 ### Contas
 
-| Método | Rota           | Descrição                             |
-| ------ | -------------- | ------------------------------------- |
-| `POST` | `/v1/accounts` | Cria uma conta no tenant autenticado  |
-| `GET`  | `/v1/accounts` | Lista as contas do tenant autenticado |
+| Método  | Rota               | Descrição                                     |
+| ------- | ------------------ | --------------------------------------------- |
+| `POST`  | `/v1/accounts`     | Cria uma conta no tenant autenticado          |
+| `GET`   | `/v1/accounts`     | Lista as contas do tenant autenticado         |
+| `PATCH` | `/v1/accounts/:id` | Atualiza nome, e-mail e/ou senha de uma conta |
 
-As duas rotas exigem `Authorization: Bearer <accessToken>`.
+As três rotas exigem `Authorization: Bearer <accessToken>`.
 
 **Criar conta**
 
@@ -200,6 +201,32 @@ Resposta `201`:
   body.
 - Não há verificação de e-mail nem papéis nesta etapa; a conta já pode fazer
   login com a senha informada.
+
+**Editar conta**
+
+```http
+PATCH /v1/accounts/acc_AaFXJKFudkiOtV8yn8ts-g
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Maria Souza",
+  "email": "maria.souza@exemplo.com",
+  "password": "nova-senha-super-segura"
+}
+```
+
+- Todos os campos são opcionais, mas pelo menos um deve ser enviado.
+- Campos omitidos permanecem inalterados (semântica de PATCH).
+- `name` e `email` são normalizados e validados.
+- `email` continua único por tenant; duplicidade retorna `409 EMAIL_TAKEN`.
+- Alterar a senha revoga todos os refresh tokens da conta.
+- Campos desconhecidos, como `passwordHash`, são rejeitados com `400`.
+- A conta precisa pertencer ao tenant do token; caso contrário, retorna `404
+ACCOUNT_NOT_FOUND`.
+- O `:id` é o ID público (`acc_...`).
+
+Resposta `200` com a conta atualizada.
 
 **Listar contas**
 
@@ -276,8 +303,8 @@ está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base e o contexto de identity (tenants,
-accounts, autenticação, reset de senha, criação e listagem de contas) já estão implementados. As
-demais funcionalidades de negócio ainda não foram implementadas.
+accounts, autenticação, reset de senha, criação, listagem e edição de contas) já estão
+implementados. As demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 

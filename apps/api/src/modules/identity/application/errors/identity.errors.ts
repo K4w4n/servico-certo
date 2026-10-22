@@ -55,3 +55,11 @@ export class InvalidResetTokenError extends AppError {
     super(message);
   }
 }
+
+export class AccountNotFoundError extends AppError {
+  readonly code = 'ACCOUNT_NOT_FOUND';
+
+  constructor(message = 'Conta não encontrada') {
+    super(message);
+  }
+}
