@@ -16,6 +16,7 @@ vi.mock('@/modules/identity/providers/auth-provider', () => ({
     status: 'unauthenticated',
     account: null,
     tenant: null,
+    register: vi.fn(),
     login: mocks.login,
     logout: vi.fn(),
     request: vi.fn(),

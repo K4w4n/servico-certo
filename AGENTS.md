@@ -430,17 +430,18 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 150 testes na API + 11 no web. Sempre manter lint, typecheck,
+- Estado atual: 150 testes na API + 17 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
 
-- Next.js App Router; login implementado em `/login` e home protegida em `/`.
+- Next.js App Router; login em `/login`, registro de tenant em `/register` e home
+  protegida em `/`.
 - Tailwind v4 + shadcn/ui configurado; primitivos locais em `shared/ui`
   (`button`, `input`, `label`, `alert`).
 - `apps/web/src/modules` espelha os contextos da API; auth fica em
   `modules/identity` (`lib/auth-api.ts`, `providers/auth-provider.tsx`,
-  `components/login-form.tsx`).
+  `components/login-form.tsx`, `components/register-form.tsx`).
 - `AuthProvider` no `layout.tsx` mantém a sessão: access token apenas em
   memória, restauração via `/v1/auth/refresh` no carregamento, renovação
   proativa antes de expirar (com jitter e apenas com aba visível) e retry
@@ -450,8 +451,8 @@ DELETE /v1/service-orders/:id
 - O web usa `@servico-certo/contracts` para validar o formulário e as respostas
   de auth (`loginSchema`, `authResponseSchema`).
 - Proteção de rota é client-side, pois o token não é persistido em storage.
-- Ainda faltam: registro, recuperação de senha, contas, clientes, produtos,
-  serviços e ordens de serviço.
+- Ainda faltam: recuperação de senha, contas, clientes, produtos, serviços e
+  ordens de serviço.
 - A página `/reset-password` mencionada nos e-mails ainda não existe.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.

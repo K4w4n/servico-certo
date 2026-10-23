@@ -1,6 +1,12 @@
 'use client';
 
-import type { Account, AuthResponse, LoginInput, Tenant } from '@servico-certo/contracts';
+import type {
+  Account,
+  AuthResponse,
+  LoginInput,
+  RegisterTenantInput,
+  Tenant,
+} from '@servico-certo/contracts';
 import {
   createContext,
   useCallback,
@@ -12,7 +18,12 @@ import {
   type ReactNode,
 } from 'react';
 import { createApiClient, type ApiClient } from '@/shared/lib/api-client';
-import { login as loginRequest, logout as logoutRequest, refreshSession } from '../lib/auth-api';
+import {
+  login as loginRequest,
+  logout as logoutRequest,
+  refreshSession,
+  register as registerRequest,
+} from '../lib/auth-api';
 
 const REFRESH_SKEW_MS = 60_000;
 const REFRESH_JITTER_MS = 30_000;
@@ -30,6 +41,7 @@ type AuthContextValue = {
   account: Account | null;
   tenant: Tenant | null;
   login: (input: LoginInput) => Promise<void>;
+  register: (input: RegisterTenantInput) => Promise<void>;
   logout: () => Promise<void>;
   request: ApiClient['fetch'];
 };
@@ -134,6 +146,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applySession],
   );
 
+  const register = useCallback(
+    async (input: RegisterTenantInput) => {
+      const response = await registerRequest(input);
+      applySession(response);
+    },
+    [applySession],
+  );
+
   const logout = useCallback(async () => {
     try {
       await logoutRequest();
@@ -162,10 +182,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       account: session?.account ?? null,
       tenant: session?.tenant ?? null,
       login,
+      register,
       logout,
       request: client.fetch,
     }),
-    [client.fetch, login, logout, session, status],
+    [client.fetch, login, logout, register, session, status],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -25,6 +25,7 @@ vi.mock('@/modules/identity/providers/auth-provider', () => ({
       domain: 'oficina-do-joao',
     },
     login: vi.fn(),
+    register: vi.fn(),
     logout: mocks.logout,
     request: vi.fn(),
   }),
