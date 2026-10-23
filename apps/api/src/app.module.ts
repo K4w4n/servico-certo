@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module.js';
 import { HealthModule } from './health/health.module.js';
 import { CustomersModule } from './modules/customers/customers.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
+import { ProductsModule } from './modules/products/products.module.js';
 import { validateEnv } from './shared/config/env.js';
 import { SharedModule } from './shared/shared.module.js';
 
@@ -20,6 +21,7 @@ import { SharedModule } from './shared/shared.module.js';
     HealthModule,
     IdentityModule,
     CustomersModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}

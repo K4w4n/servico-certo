@@ -38,7 +38,8 @@ apps/
 │     ├─ health/
 │     ├─ modules/
 │     │  ├─ identity/           # tenants, accounts, auth, password reset
-│     │  └─ customers/          # CRUD de clientes
+│     │  ├─ customers/          # CRUD de clientes
+│     │  └─ products/           # CRUD de produtos
 │     └─ shared/                # ports, erros, filtros, IDs, UoW, database helpers
 ├─ web/                         # Next.js (apenas placeholder por enquanto)
 packages/
@@ -135,11 +136,12 @@ Formato:
   - `ten` → tenant
   - `acc` → account
   - `cus` → customer
+  - `prd` → product
 - Banco guarda UUIDv7 puro; o prefixo existe apenas na borda HTTP.
 - `encodePublicId`/`decodePublicId` em `src/shared/ids/public-id.ts`.
 - `decodePublicId` valida prefixo, base64url canônico, UUIDv7 e variante.
 - Não usar `split('_')`: o payload base64url pode conter `_`.
-- Nos controllers: `@Param('id', new ZodValidationPipe(customerIdSchema))` e
+- Nos controllers: `@Param('id', new ZodValidationPipe(<resource>IdSchema))` e
   `decodePublicId(...)`.
 
 ## Autenticação e identidade
@@ -244,14 +246,39 @@ DELETE /v1/customers/:id
 - Migration `006` inclui check constraint de consistência
   documento/tipo/tamanho.
 
+## Produtos (products)
+
+Rotas:
+
+```text
+POST   /v1/products
+GET    /v1/products?limit&offset&name
+GET    /v1/products/:id
+PATCH  /v1/products/:id
+DELETE /v1/products/:id
+```
+
+- `name`, `description` e `priceCents` são obrigatórios.
+- `name` até 160 caracteres; `description` até 2000 caracteres.
+- Requests e respostas usam `priceCents` inteiro `>= 0` (ex.: `4990`).
+- O banco persiste `price_cents` como `bigInteger`, para precisão.
+- A resposta inclui `createdAt` e `updatedAt` em ISO 8601.
+- **Soft delete** (`deleted_at`); produto excluído some da listagem e retorna
+  `404` em busca/edição/exclusão.
+- Listagem com paginação e filtro parcial case-insensitive por `name`; resposta
+  `{ data, meta }`.
+- Não há unicidade de nome nesta etapa.
+- Migration `007` inclui check constraint `price_cents >= 0`.
+- IDs públicos usam o prefixo `prd_`.
+
 ## Banco de dados
 
 - Knex + SQLite (dev/testes) e PostgreSQL (prod).
-- Migrations em `apps/api/src/database/migrations` (001–006):
+- Migrations em `apps/api/src/database/migrations` (001–007):
   001 tenants, 002 accounts, 003 refresh_tokens, 004 password_reset_tokens,
-  005 account status, 006 customers.
+  005 account status, 006 customers, 007 products.
 - UUIDv7 gerado na aplicação (`uuid`), timestamps na aplicação (`Clock`).
-- Dinheiro deve ser armazenado em **centavos (integer)**.
+- Dinheiro deve ser armazenado em **centavos (integer/bigInteger)**.
 - SQLite: pool min/max 1 e `PRAGMA foreign_keys = ON` via `pool.afterCreate`.
 - Evitar SQL específico de dialeto; índices parciais e `CHECK` funcionam nos dois.
 - **Não usar enum nativo do PostgreSQL**: o projeto precisa de paridade com
@@ -313,7 +340,7 @@ DELETE /v1/customers/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 88 testes na API + 1 no web. Sempre manter lint, typecheck,
+- Estado atual: 108 testes na API + 1 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -322,7 +349,8 @@ DELETE /v1/customers/:id
 - Tailwind v4 + shadcn/ui configurado; componentes em `shared/ui`.
 - `apps/web/src/modules` espelha os contextos da API.
 - Client HTTP em `shared/lib/api-client.ts` (credentials include).
-- Ainda faltam: telas de login/registro, recuperação de senha, contas e clientes.
+- Ainda faltam: telas de login/registro, recuperação de senha, contas, clientes
+  e produtos.
 - A página `/reset-password` mencionada nos e-mails ainda não existe.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 
@@ -338,12 +366,15 @@ DELETE /v1/customers/:id
 - Reset de senha sempre responde `204` na solicitação (anti-enumeração).
 - Conta bloqueada é rejeitada imediatamente no guard.
 - Clientes: soft delete, somente `name` obrigatório, `documentType` explícito.
+- Produtos: API 100% em centavos (`priceCents` inteiro em requests e respostas)
+  e banco em centavos; soft delete; `name`, `description` e `priceCents`
+  obrigatórios.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 
 ## Próximos passos naturais
 
-1. Telas de auth (login, registro, reset) e clientes no frontend.
+1. Telas de auth (login, registro, reset), clientes e produtos no frontend.
 2. Papéis/permissões (OWNER/STAFF) e convite de contas.
 3. Ordens de serviço.
 4. Estoque e movimentações.

@@ -5,6 +5,7 @@ import * as createRefreshTokens from '../../src/database/migrations/003_create_r
 import * as createPasswordResetTokens from '../../src/database/migrations/004_create_password_reset_tokens.js';
 import * as addAccountStatus from '../../src/database/migrations/005_add_account_status.js';
 import * as createCustomers from '../../src/database/migrations/006_create_customers.js';
+import * as createProducts from '../../src/database/migrations/007_create_products.js';
 
 // Executa as migrations diretamente para não depender do loader de TS do Knex no Vitest.
 export async function runMigrations(db: Knex): Promise<void> {
@@ -14,4 +15,5 @@ export async function runMigrations(db: Knex): Promise<void> {
   await createPasswordResetTokens.up(db);
   await addAccountStatus.up(db);
   await createCustomers.up(db);
+  await createProducts.up(db);
 }

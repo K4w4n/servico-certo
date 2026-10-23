@@ -31,7 +31,7 @@ servico-certo/
 │  │  ├─ src/
 │  │  │  ├─ database/       # conexão Knex, migrations e seeds
 │  │  │  ├─ health/         # health check
-│  │  │  ├─ modules/        # contextos de negócio (identity e customers)
+│  │  │  ├─ modules/        # contextos de negócio (identity, customers e products)
 │  │  │  └─ shared/         # env, filtros e código transversal
 │  │  ├─ test/              # testes e2e
 │  │  └─ knexfile.ts
@@ -103,9 +103,10 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-As migrations `001` a `006` criam as tabelas do identity e de clientes
-(`tenants`, `accounts`, `refresh_tokens`, `password_reset_tokens` e `customers`),
-além do status de accounts, e já rodam tanto no SQLite quanto no PostgreSQL.
+As migrations `001` a `007` criam as tabelas do identity, de clientes e de
+produtos (`tenants`, `accounts`, `refresh_tokens`, `password_reset_tokens`,
+`customers` e `products`), além do status de accounts, e já rodam tanto no
+SQLite quanto no PostgreSQL.
 
 O `docker compose` também sobe o **Mailpit**:
 
@@ -360,6 +361,73 @@ envelope `{ data, meta }`.
 `DELETE /v1/customers/:id` retorna `204`. O cliente deixa de aparecer na
 listagem, mas o registro é preservado para futuras ordens de serviço.
 
+## Produtos
+
+CRUD de produtos, multi-tenant, com preço em centavos e soft delete.
+
+| Método   | Rota               | Descrição                            |
+| -------- | ------------------ | ------------------------------------ |
+| `POST`   | `/v1/products`     | Cria um produto                      |
+| `GET`    | `/v1/products`     | Lista com `limit`, `offset` e `name` |
+| `GET`    | `/v1/products/:id` | Busca um produto por ID              |
+| `PATCH`  | `/v1/products/:id` | Edita os dados do produto            |
+| `DELETE` | `/v1/products/:id` | Exclui logicamente o produto         |
+
+Todas exigem `Authorization: Bearer <accessToken>`. Os IDs públicos usam o
+prefixo `prd_`.
+
+**Campos**
+
+- `name` obrigatório (até 160 caracteres).
+- `description` obrigatório (até 2000 caracteres).
+- `priceCents` obrigatório na criação/edição, inteiro maior ou igual a zero.
+- `createdAt` e `updatedAt` são retornados em ISO 8601.
+- Requests e respostas usam **centavos** no campo `priceCents`.
+- O banco persiste `price_cents` como inteiro para evitar erros de ponto
+  flutuante.
+- A exclusão é **soft delete** (`deleted_at`); o registro permanece no banco e
+  some das consultas.
+- A listagem aceita `limit` (1–100, padrão 20), `offset` (padrão 0) e `name`
+  (busca parcial case-insensitive), no envelope `{ data, meta }`.
+
+**Criar produto**
+
+```http
+POST /v1/products
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Corte de Cabelo",
+  "description": "Corte masculino com tesoura e máquina",
+  "priceCents": 4990
+}
+```
+
+Resposta `201`:
+
+```json
+{
+  "id": "prd_AaFXJKFudkiOtV8yn8ts-g",
+  "name": "Corte de Cabelo",
+  "description": "Corte masculino com tesoura e máquina",
+  "priceCents": 4990,
+  "createdAt": "2026-10-22T12:00:00.000Z",
+  "updatedAt": "2026-10-22T12:00:00.000Z"
+}
+```
+
+**Editar produto**
+
+PATCH com `name`, `description` e/ou `priceCents`. Ao menos um campo deve ser
+enviado. O preço segue a mesma validação da criação e continua em centavos.
+
+**Excluir produto**
+
+`DELETE /v1/products/:id` retorna `204`. O produto deixa de aparecer na
+listagem e nas buscas por ID, mas o registro permanece com `deleted_at`
+preenchido.
+
 ## Scripts
 
 | Comando            | Descrição                        |
@@ -381,7 +449,7 @@ Em produção, rode `pnpm build` e use as variantes `:prod` (`db:migrate:prod`,
 ## Arquitetura
 
 O backend segue os conceitos de **Clean Architecture** em um modular monolith. Cada contexto
-(`identity`, `customers`, `catalog`, `work-orders`, `inventory`, `invoicing`) é dividido em:
+(`identity`, `customers`, `products`, `work-orders`, `inventory`, `invoicing`) é dividido em:
 
 ```
 domain/           # entidades, value objects, erros e ports — TypeScript puro
@@ -394,17 +462,17 @@ A regra de dependência aponta sempre para dentro: `presentation` e `infrastruct
 `application`, que depende de `domain`. O domínio não conhece NestJS, Knex ou qualquer detalhe
 externo. A composição acontece no `<module>.module.ts`.
 
-O contexto `identity` já tem as quatro camadas implementadas. Os demais contextos (`customers`,
-`catalog`, `work-orders`, `inventory`, `invoicing`) estão com as pastas vazias de propósito:
-entidades, use cases e funcionalidades serão adicionados junto com cada feature. O padrão completo
-está em [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
+Os contextos `identity`, `customers` e `products` já têm as quatro camadas implementadas. Os demais
+(`work-orders`, `inventory`, `invoicing`) estão com as pastas vazias de propósito: entidades, use
+cases e funcionalidades serão adicionados junto com cada feature. O padrão completo está em
+[`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base, o contexto de identity (tenants,
-accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas) e o módulo
-de clientes (CRUD com CPF/CNPJ) já estão implementados. As demais funcionalidades de negócio ainda
-não foram implementadas.
+accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas), o módulo de
+clientes (CRUD com CPF/CNPJ) e o módulo de produtos (CRUD com preço e soft delete) já estão
+implementados. As demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
