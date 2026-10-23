@@ -110,17 +110,17 @@ describe('Products (e2e)', () => {
 
   it('cria produto e normaliza nome e descrição', async () => {
     const response = await createProduct(tenantA, {
-      name: '  Corte   de Cabelo  ',
-      description: '  Corte masculino com tesoura e máquina  ',
-      priceCents: 4999,
+      name: '  Tinta   de Cabelo  ',
+      description: '  Tinta profissional castanho 60 ml  ',
+      priceCents: 4590,
     }).expect(201);
 
     const body = response.body as ProductResponse;
 
     expect(body.id).toMatch(/^prd_[A-Za-z0-9_-]{22}$/);
-    expect(body.name).toBe('Corte de Cabelo');
-    expect(body.description).toBe('Corte masculino com tesoura e máquina');
-    expect(body.priceCents).toBe(4999);
+    expect(body.name).toBe('Tinta de Cabelo');
+    expect(body.description).toBe('Tinta profissional castanho 60 ml');
+    expect(body.priceCents).toBe(4590);
     expect(new Date(body.createdAt).toISOString()).toBe(body.createdAt);
     expect(new Date(body.updatedAt).toISOString()).toBe(body.updatedAt);
   });

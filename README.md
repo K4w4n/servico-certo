@@ -398,9 +398,9 @@ Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
-  "name": "Corte de Cabelo",
-  "description": "Corte masculino com tesoura e máquina",
-  "priceCents": 4990
+  "name": "Tinta de Cabelo",
+  "description": "Tinta profissional castanho 60 ml",
+  "priceCents": 4590
 }
 ```
 
@@ -409,9 +409,9 @@ Resposta `201`:
 ```json
 {
   "id": "prd_AaFXJKFudkiOtV8yn8ts-g",
-  "name": "Corte de Cabelo",
-  "description": "Corte masculino com tesoura e máquina",
-  "priceCents": 4990,
+  "name": "Tinta de Cabelo",
+  "description": "Tinta profissional castanho 60 ml",
+  "priceCents": 4590,
   "createdAt": "2026-10-22T12:00:00.000Z",
   "updatedAt": "2026-10-22T12:00:00.000Z"
 }

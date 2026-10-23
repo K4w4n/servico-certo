@@ -74,9 +74,9 @@ export class ProductsController {
       service: {
         summary: 'Produto com preço em centavos',
         value: {
-          name: 'Corte de Cabelo',
-          description: 'Corte masculino com tesoura e máquina',
-          priceCents: 4990,
+          name: 'Tinta de Cabelo',
+          description: 'Tinta profissional castanho 60 ml',
+          priceCents: 4590,
         },
       },
     },
@@ -192,8 +192,8 @@ export class ProductsController {
       details: {
         summary: 'Alterar nome e descrição',
         value: {
-          name: 'Corte Premium',
-          description: 'Corte com lavagem e finalização',
+          name: 'Tinta Premium',
+          description: 'Tinta profissional com hidratação',
         },
       },
     },
