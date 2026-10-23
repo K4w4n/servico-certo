@@ -674,7 +674,8 @@ accounts, autenticação, reset de senha, criação, listagem, edição e bloque
 clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft delete), o módulo de
 serviços (CRUD com preço em centavos e soft delete) e o módulo de ordens de serviço (protocolo
 sequencial, itens com preços personalizados, snapshots de nome e soft delete) já estão
-implementados. As demais funcionalidades de negócio ainda não foram implementadas.
+implementados. No frontend, a tela de login e a sessão com renovação de token já funcionam. As
+demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
