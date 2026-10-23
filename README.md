@@ -532,7 +532,7 @@ Em produção, rode `pnpm build` e use as variantes `:prod` (`db:migrate:prod`,
 ## Arquitetura
 
 O backend segue os conceitos de **Clean Architecture** em um modular monolith. Cada contexto
-(`identity`, `customers`, `products`, `services`, `work-orders`, `inventory`, `invoicing`) é dividido em:
+(`identity`, `customers`, `products`, `services`) é dividido em:
 
 ```
 domain/           # entidades, value objects, erros e ports — TypeScript puro
@@ -545,9 +545,8 @@ A regra de dependência aponta sempre para dentro: `presentation` e `infrastruct
 `application`, que depende de `domain`. O domínio não conhece NestJS, Knex ou qualquer detalhe
 externo. A composição acontece no `<module>.module.ts`.
 
-Os contextos `identity`, `customers`, `products` e `services` já têm as quatro camadas implementadas. Os demais
-(`work-orders`, `inventory`, `invoicing`) estão com as pastas vazias de propósito: entidades, use
-cases e funcionalidades serão adicionados junto com cada feature. O padrão completo está em
+Os contextos `identity`, `customers`, `products` e `services` têm as quatro camadas implementadas. O
+padrão completo está em
 [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 
 ## Status do projeto
