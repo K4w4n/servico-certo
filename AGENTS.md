@@ -39,7 +39,8 @@ apps/
 │     ├─ modules/
 │     │  ├─ identity/           # tenants, accounts, auth, password reset
 │     │  ├─ customers/          # CRUD de clientes
-│     │  └─ products/           # CRUD de produtos
+│     │  ├─ products/           # CRUD de produtos
+│     │  └─ services/           # CRUD de serviços
 │     └─ shared/                # ports, erros, filtros, IDs, UoW, database helpers
 ├─ web/                         # Next.js (apenas placeholder por enquanto)
 packages/
@@ -137,6 +138,7 @@ Formato:
   - `acc` → account
   - `cus` → customer
   - `prd` → product
+  - `srv` → service
 - Banco guarda UUIDv7 puro; o prefixo existe apenas na borda HTTP.
 - `encodePublicId`/`decodePublicId` em `src/shared/ids/public-id.ts`.
 - `decodePublicId` valida prefixo, base64url canônico, UUIDv7 e variante.
@@ -271,12 +273,37 @@ DELETE /v1/products/:id
 - Migration `007` inclui check constraint `price_cents >= 0`.
 - IDs públicos usam o prefixo `prd_`.
 
+## Serviços (services)
+
+Rotas:
+
+```text
+POST   /v1/services
+GET    /v1/services?limit&offset&name
+GET    /v1/services/:id
+PATCH  /v1/services/:id
+DELETE /v1/services/:id
+```
+
+- `name`, `description` e `priceCents` são obrigatórios.
+- `name` até 160 caracteres; `description` até 2000 caracteres.
+- Requests e respostas usam `priceCents` inteiro `>= 0` (ex.: `12000`).
+- O banco persiste `price_cents` como `bigInteger`, para precisão.
+- A resposta inclui `createdAt` e `updatedAt` em ISO 8601.
+- **Soft delete** (`deleted_at`); serviço excluído some da listagem e retorna
+  `404` em busca/edição/exclusão.
+- Listagem com paginação e filtro parcial case-insensitive por `name`; resposta
+  `{ data, meta }`.
+- Não há unicidade de nome nesta etapa.
+- Migration `008` inclui check constraint `price_cents >= 0`.
+- IDs públicos usam o prefixo `srv_`.
+
 ## Banco de dados
 
 - Knex + SQLite (dev/testes) e PostgreSQL (prod).
-- Migrations em `apps/api/src/database/migrations` (001–007):
+- Migrations em `apps/api/src/database/migrations` (001–008):
   001 tenants, 002 accounts, 003 refresh_tokens, 004 password_reset_tokens,
-  005 account status, 006 customers, 007 products.
+  005 account status, 006 customers, 007 products, 008 services.
 - UUIDv7 gerado na aplicação (`uuid`), timestamps na aplicação (`Clock`).
 - Dinheiro deve ser armazenado em **centavos (integer/bigInteger)**.
 - SQLite: pool min/max 1 e `PRAGMA foreign_keys = ON` via `pool.afterCreate`.
@@ -340,7 +367,7 @@ DELETE /v1/products/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 108 testes na API + 1 no web. Sempre manter lint, typecheck,
+- Estado atual: 128 testes na API + 1 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -349,8 +376,8 @@ DELETE /v1/products/:id
 - Tailwind v4 + shadcn/ui configurado; componentes em `shared/ui`.
 - `apps/web/src/modules` espelha os contextos da API.
 - Client HTTP em `shared/lib/api-client.ts` (credentials include).
-- Ainda faltam: telas de login/registro, recuperação de senha, contas, clientes
-  e produtos.
+- Ainda faltam: telas de login/registro, recuperação de senha, contas, clientes,
+  produtos e serviços.
 - A página `/reset-password` mencionada nos e-mails ainda não existe.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 
@@ -369,12 +396,16 @@ DELETE /v1/products/:id
 - Produtos: API 100% em centavos (`priceCents` inteiro em requests e respostas)
   e banco em centavos; soft delete; `name`, `description` e `priceCents`
   obrigatórios.
+- Serviços: mesmo contrato de produtos, com API 100% em centavos (`priceCents`
+  inteiro), soft delete e IDs `srv_`; `name`, `description` e `priceCents`
+  obrigatórios.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 
 ## Próximos passos naturais
 
-1. Telas de auth (login, registro, reset), clientes e produtos no frontend.
+1. Telas de auth (login, registro, reset), clientes, produtos e serviços no
+   frontend.
 2. Papéis/permissões (OWNER/STAFF) e convite de contas.
 3. Ordens de serviço.
 4. Estoque e movimentações.

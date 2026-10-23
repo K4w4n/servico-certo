@@ -31,7 +31,7 @@ servico-certo/
 │  │  ├─ src/
 │  │  │  ├─ database/       # conexão Knex, migrations e seeds
 │  │  │  ├─ health/         # health check
-│  │  │  ├─ modules/        # contextos de negócio (identity, customers e products)
+│  │  │  ├─ modules/        # contextos de negócio (identity, customers, products e services)
 │  │  │  └─ shared/         # env, filtros e código transversal
 │  │  ├─ test/              # testes e2e
 │  │  └─ knexfile.ts
@@ -103,10 +103,10 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-As migrations `001` a `007` criam as tabelas do identity, de clientes e de
-produtos (`tenants`, `accounts`, `refresh_tokens`, `password_reset_tokens`,
-`customers` e `products`), além do status de accounts, e já rodam tanto no
-SQLite quanto no PostgreSQL.
+As migrations `001` a `008` criam as tabelas do identity, de clientes, de
+produtos e de serviços (`tenants`, `accounts`, `refresh_tokens`,
+`password_reset_tokens`, `customers`, `products` e `services`), além do status
+de accounts, e já rodam tanto no SQLite quanto no PostgreSQL.
 
 O `docker compose` também sobe o **Mailpit**:
 
@@ -428,6 +428,73 @@ enviado. O preço segue a mesma validação da criação e continua em centavos.
 listagem e nas buscas por ID, mas o registro permanece com `deleted_at`
 preenchido.
 
+## Serviços
+
+CRUD de serviços, multi-tenant, com preço em centavos e soft delete.
+
+| Método   | Rota               | Descrição                            |
+| -------- | ------------------ | ------------------------------------ |
+| `POST`   | `/v1/services`     | Cria um serviço                      |
+| `GET`    | `/v1/services`     | Lista com `limit`, `offset` e `name` |
+| `GET`    | `/v1/services/:id` | Busca um serviço por ID              |
+| `PATCH`  | `/v1/services/:id` | Edita os dados do serviço            |
+| `DELETE` | `/v1/services/:id` | Exclui logicamente o serviço         |
+
+Todas exigem `Authorization: Bearer <accessToken>`. Os IDs públicos usam o
+prefixo `srv_`.
+
+**Campos**
+
+- `name` obrigatório (até 160 caracteres).
+- `description` obrigatório (até 2000 caracteres).
+- `priceCents` obrigatório na criação/edição, inteiro maior ou igual a zero.
+- `createdAt` e `updatedAt` são retornados em ISO 8601.
+- Requests e respostas usam **centavos** no campo `priceCents`.
+- O banco persiste `price_cents` como inteiro para evitar erros de ponto
+  flutuante.
+- A exclusão é **soft delete** (`deleted_at`); o registro permanece no banco e
+  some das consultas.
+- A listagem aceita `limit` (1–100, padrão 20), `offset` (padrão 0) e `name`
+  (busca parcial case-insensitive), no envelope `{ data, meta }`.
+
+**Criar serviço**
+
+```http
+POST /v1/services
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "name": "Troca de Óleo",
+  "description": "Troca de óleo e filtro para carro de passeio",
+  "priceCents": 12000
+}
+```
+
+Resposta `201`:
+
+```json
+{
+  "id": "srv_AaFXJKFudkiOtV8yn8ts-g",
+  "name": "Troca de Óleo",
+  "description": "Troca de óleo e filtro para carro de passeio",
+  "priceCents": 12000,
+  "createdAt": "2026-10-22T12:00:00.000Z",
+  "updatedAt": "2026-10-22T12:00:00.000Z"
+}
+```
+
+**Editar serviço**
+
+PATCH com `name`, `description` e/ou `priceCents`. Ao menos um campo deve ser
+enviado. O preço segue a mesma validação da criação e continua em centavos.
+
+**Excluir serviço**
+
+`DELETE /v1/services/:id` retorna `204`. O serviço deixa de aparecer na
+listagem e nas buscas por ID, mas o registro permanece com `deleted_at`
+preenchido.
+
 ## Scripts
 
 | Comando            | Descrição                        |
@@ -449,7 +516,7 @@ Em produção, rode `pnpm build` e use as variantes `:prod` (`db:migrate:prod`,
 ## Arquitetura
 
 O backend segue os conceitos de **Clean Architecture** em um modular monolith. Cada contexto
-(`identity`, `customers`, `products`, `work-orders`, `inventory`, `invoicing`) é dividido em:
+(`identity`, `customers`, `products`, `services`, `work-orders`, `inventory`, `invoicing`) é dividido em:
 
 ```
 domain/           # entidades, value objects, erros e ports — TypeScript puro
@@ -462,7 +529,7 @@ A regra de dependência aponta sempre para dentro: `presentation` e `infrastruct
 `application`, que depende de `domain`. O domínio não conhece NestJS, Knex ou qualquer detalhe
 externo. A composição acontece no `<module>.module.ts`.
 
-Os contextos `identity`, `customers` e `products` já têm as quatro camadas implementadas. Os demais
+Os contextos `identity`, `customers`, `products` e `services` já têm as quatro camadas implementadas. Os demais
 (`work-orders`, `inventory`, `invoicing`) estão com as pastas vazias de propósito: entidades, use
 cases e funcionalidades serão adicionados junto com cada feature. O padrão completo está em
 [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
@@ -471,8 +538,9 @@ cases e funcionalidades serão adicionados junto com cada feature. O padrão com
 
 O projeto está **no início**. O scaffold do monorepo, a API base, o contexto de identity (tenants,
 accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas), o módulo de
-clientes (CRUD com CPF/CNPJ) e o módulo de produtos (CRUD com preço e soft delete) já estão
-implementados. As demais funcionalidades de negócio ainda não foram implementadas.
+clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft delete) e o módulo de
+serviços (CRUD com preço em centavos e soft delete) já estão implementados. As demais
+funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
