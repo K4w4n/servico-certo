@@ -1,4 +1,6 @@
 process.env.NODE_ENV = 'test';
+process.env.DATABASE_CLIENT ??= 'better-sqlite3';
+process.env.TEST_DB_SCHEMA ??= `test_${process.pid}`;
 process.env.JWT_SECRET ??= 'test-secret-test-secret-test-secret-32';
 process.env.JWT_ISSUER ??= 'servico-certo';
 process.env.JWT_AUDIENCE ??= 'servico-certo-web';

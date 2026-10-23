@@ -59,8 +59,18 @@ pnpm dev                 # API :3001 + web :3000
 pnpm lint
 pnpm typecheck
 pnpm test                # todos os pacotes via Turbo
+pnpm test:unit           # testes unitários da API
+pnpm test:e2e            # testes e2e da API
 pnpm build
 pnpm format
+```
+
+Os e2e rodam em SQLite `:memory:` por padrão. Para rodar contra PostgreSQL:
+
+```bash
+DATABASE_CLIENT=pg \
+DATABASE_URL=postgres://servico_certo:servico_certo@localhost:5432/servico_certo \
+pnpm test:e2e
 ```
 
 Produção:
@@ -360,10 +370,17 @@ DELETE /v1/services/:id
 
 - Vitest, ambiente `node` na API; `jsdom` + Testing Library no web.
 - API usa SQLite `:memory:` por arquivo de teste e migrations reais.
+- Com `DATABASE_CLIENT=pg`, os e2e usam PostgreSQL com um schema isolado por
+  worker (`test_<pid>`); `test/helpers/migrate.ts` cria e recria esse schema.
 - `test/helpers/migrate.ts` deve ser atualizado ao adicionar migration.
 - E2E usam Supertest, `configureApp` e agents quando precisam de cookie.
 - `test/setup.ts` define env de teste (JWT_SECRET, TTLs, rate limit alto,
-  `MAIL_TRANSPORT=console`, `COOKIE_DOMAIN=''`).
+  `MAIL_TRANSPORT=console`, `COOKIE_DOMAIN=''`, `DATABASE_CLIENT` padrão e
+  `TEST_DB_SCHEMA`).
+- CI: `quality` roda lint, typecheck, unitários e build; `api-e2e` roda a matriz
+  SQLite/PostgreSQL.
+- `test:e2e` não usa cache do Turbo (`cache: false`) porque depende do banco
+  externo.
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.

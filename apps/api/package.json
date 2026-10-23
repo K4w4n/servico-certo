@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run src",
+    "test:e2e": "vitest run test",
     "db:migrate": "tsx src/database/cli.ts migrate:latest",
     "db:rollback": "tsx src/database/cli.ts migrate:rollback",
     "db:seed": "tsx src/database/cli.ts seed:run",

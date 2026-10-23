@@ -16,7 +16,16 @@
       "dependsOn": ["^build"]
     },
     "test": {
+      "dependsOn": ["^build"],
+      "env": ["NODE_ENV", "DATABASE_CLIENT", "DATABASE_URL", "TEST_DB_SCHEMA"]
+    },
+    "test:unit": {
       "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "env": ["NODE_ENV", "DATABASE_CLIENT", "DATABASE_URL", "TEST_DB_SCHEMA"]
     }
   }
 }

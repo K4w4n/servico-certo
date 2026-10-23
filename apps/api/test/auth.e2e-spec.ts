@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Knex } from 'knex';
@@ -206,7 +207,23 @@ describe('Auth (e2e)', () => {
     expect(response.body.error.details).toBeDefined();
   });
 
-  it('mantém foreign keys habilitadas no SQLite', async () => {
+  it('mantém foreign keys habilitadas', async () => {
+    if (db.client.config.client === 'pg') {
+      await expect(
+        db('accounts').insert({
+          id: randomUUID(),
+          tenant_id: randomUUID(),
+          name: 'Sem tenant',
+          email: 'sem-tenant@example.com',
+          password_hash: '$argon2id$teste',
+          created_at: new Date(),
+          updated_at: new Date(),
+        }),
+      ).rejects.toThrow();
+
+      return;
+    }
+
     const result = (await db.raw('PRAGMA foreign_keys')) as Array<{ foreign_keys: number }>;
 
     expect(result[0]?.foreign_keys).toBe(1);

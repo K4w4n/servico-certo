@@ -503,11 +503,27 @@ preenchido.
 | `pnpm build`       | Build de todos os pacotes e apps |
 | `pnpm lint`        | ESLint em todo o monorepo        |
 | `pnpm typecheck`   | Checagem de tipos                |
-| `pnpm test`        | Testes com Vitest                |
+| `pnpm test`        | Todos os testes com Vitest       |
+| `pnpm test:unit`   | Testes unitários da API          |
+| `pnpm test:e2e`    | Testes e2e da API                |
 | `pnpm format`      | Formata o código com Prettier    |
 | `pnpm db:migrate`  | Aplica as migrations             |
 | `pnpm db:rollback` | Reverte a última migration       |
 | `pnpm db:seed`     | Executa os seeds                 |
+
+Os testes e2e usam SQLite `:memory:` por padrão. Para executá-los contra o
+PostgreSQL local:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d postgres
+DATABASE_CLIENT=pg \
+DATABASE_URL=postgres://servico_certo:servico_certo@localhost:5432/servico_certo \
+pnpm test:e2e
+```
+
+Cada worker usa um schema temporário (`test_<pid>`), então as migrations de
+teste não alteram o schema `public`. No CI, o job `api-e2e` executa a matriz
+SQLite/PostgreSQL.
 
 Em produção, rode `pnpm build` e use as variantes `:prod` (`db:migrate:prod`,
 `db:rollback:prod`, `db:seed:prod`), que executam o CLI compilado em `dist` com

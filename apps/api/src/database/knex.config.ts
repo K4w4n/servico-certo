@@ -64,10 +64,11 @@ function sqliteConfig(filename: string, environment: string): Knex.Config {
   };
 }
 
-function postgresConfig(connection: string, environment: string): Knex.Config {
+function postgresConfig(connection: string, environment: string, searchPath?: string): Knex.Config {
   return {
     client: 'pg',
     connection,
+    ...(searchPath ? { searchPath: [searchPath, 'public'] } : {}),
     migrations: migrationsConfig(environment),
     seeds: seedsConfig(environment),
   };
@@ -81,6 +82,10 @@ function requireDatabaseUrl(): string {
   }
 
   return url;
+}
+
+export function getTestSchemaName(): string {
+  return process.env.TEST_DB_SCHEMA ?? `test_${process.pid}`;
 }
 
 function developmentConfig(): Knex.Config {
@@ -97,8 +102,13 @@ function developmentConfig(): Knex.Config {
 
 export function getKnexConfig(environment: string): Knex.Config {
   switch (environment) {
-    case 'test':
+    case 'test': {
+      if ((process.env.DATABASE_CLIENT ?? 'better-sqlite3') === 'pg') {
+        return postgresConfig(requireDatabaseUrl(), environment, getTestSchemaName());
+      }
+
       return sqliteConfig(':memory:', environment);
+    }
     case 'production':
       return postgresConfig(requireDatabaseUrl(), environment);
     default:
