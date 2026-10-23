@@ -20,5 +20,6 @@ import { ServicesController } from './presentation/http/services.controller.js';
     ListServicesUseCase,
     { provide: SERVICE_REPOSITORY, useClass: KnexServiceRepository },
   ],
+  exports: [SERVICE_REPOSITORY],
 })
 export class ServicesModule {}

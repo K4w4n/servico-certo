@@ -6,6 +6,7 @@ export const PUBLIC_ID_PREFIXES = {
   customer: 'cus',
   product: 'prd',
   service: 'srv',
+  serviceOrder: 'ord',
 } as const;
 
 export type PublicIdResource = keyof typeof PUBLIC_ID_PREFIXES;
@@ -20,9 +21,11 @@ export const accountIdSchema = publicIdSchema(PUBLIC_ID_PREFIXES.account);
 export const customerIdSchema = publicIdSchema(PUBLIC_ID_PREFIXES.customer);
 export const productIdSchema = publicIdSchema(PUBLIC_ID_PREFIXES.product);
 export const serviceIdSchema = publicIdSchema(PUBLIC_ID_PREFIXES.service);
+export const serviceOrderIdSchema = publicIdSchema(PUBLIC_ID_PREFIXES.serviceOrder);
 
 export type TenantId = z.infer<typeof tenantIdSchema>;
 export type AccountId = z.infer<typeof accountIdSchema>;
 export type CustomerId = z.infer<typeof customerIdSchema>;
 export type ProductId = z.infer<typeof productIdSchema>;
 export type ServiceId = z.infer<typeof serviceIdSchema>;
+export type ServiceOrderId = z.infer<typeof serviceOrderIdSchema>;

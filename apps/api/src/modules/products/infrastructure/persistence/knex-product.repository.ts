@@ -23,6 +23,21 @@ export class KnexProductRepository implements ProductRepository {
     return row ? productMapper.toDomain(row) : null;
   }
 
+  async findByIds(tenantId: string, ids: string[]): Promise<Product[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const rows = (await this.uow
+      .executor('products')
+      .where({ tenant_id: tenantId })
+      .whereIn('id', ids)
+      .whereNull('deleted_at')
+      .select('*')) as ProductRow[];
+
+    return rows.map((row) => productMapper.toDomain(row));
+  }
+
   async list(filters: ProductListFilters): Promise<ProductListResult> {
     const query = this.uow
       .executor('products')

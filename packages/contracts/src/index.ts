@@ -8,3 +8,4 @@ export * from './identity/password-reset.schema.js';
 export * from './customers/customer.schema.js';
 export * from './products/product.schema.js';
 export * from './services/service.schema.js';
+export * from './service-orders/service-order.schema.js';

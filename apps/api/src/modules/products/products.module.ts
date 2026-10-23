@@ -20,5 +20,6 @@ import { ProductsController } from './presentation/http/products.controller.js';
     ListProductsUseCase,
     { provide: PRODUCT_REPOSITORY, useClass: KnexProductRepository },
   ],
+  exports: [PRODUCT_REPOSITORY],
 })
 export class ProductsModule {}

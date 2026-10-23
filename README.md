@@ -31,7 +31,7 @@ servico-certo/
 │  │  ├─ src/
 │  │  │  ├─ database/       # conexão Knex, migrations e seeds
 │  │  │  ├─ health/         # health check
-│  │  │  ├─ modules/        # contextos de negócio (identity, customers, products e services)
+│  │  │  ├─ modules/        # contextos de negócio (identity, customers, products, services e service-orders)
 │  │  │  └─ shared/         # env, filtros e código transversal
 │  │  ├─ test/              # testes e2e
 │  │  └─ knexfile.ts
@@ -103,10 +103,12 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-As migrations `001` a `008` criam as tabelas do identity, de clientes, de
-produtos e de serviços (`tenants`, `accounts`, `refresh_tokens`,
-`password_reset_tokens`, `customers`, `products` e `services`), além do status
-de accounts, e já rodam tanto no SQLite quanto no PostgreSQL.
+As migrations `001` a `009` criam as tabelas do identity, de clientes, de
+produtos, de serviços e de ordens de serviço (`tenants`, `accounts`,
+`refresh_tokens`, `password_reset_tokens`, `customers`, `products`, `services`,
+`service_orders`, `service_order_products`, `service_order_services` e
+`service_order_counters`), além do status de accounts, e já rodam tanto no
+SQLite quanto no PostgreSQL.
 
 O `docker compose` também sobe o **Mailpit**:
 
@@ -495,6 +497,122 @@ enviado. O preço segue a mesma validação da criação e continua em centavos.
 listagem e nas buscas por ID, mas o registro permanece com `deleted_at`
 preenchido.
 
+## Ordens de serviço
+
+CRUD de ordens de serviço, multi-tenant, com protocolo numérico sequencial,
+preços personalizados por item, snapshots de nome e soft delete.
+
+| Método   | Rota                     | Descrição                                        |
+| -------- | ------------------------ | ------------------------------------------------ |
+| `POST`   | `/v1/service-orders`     | Cria uma ordem de serviço                        |
+| `GET`    | `/v1/service-orders`     | Lista com paginação e filtros                    |
+| `GET`    | `/v1/service-orders/:id` | Busca uma ordem com cliente, produtos e serviços |
+| `PATCH`  | `/v1/service-orders/:id` | Atualiza a ordem                                 |
+| `DELETE` | `/v1/service-orders/:id` | Exclui logicamente a ordem                       |
+
+Todas exigem `Authorization: Bearer <accessToken>`. Os IDs públicos usam o
+prefixo `ord_`.
+
+**Campos e regras**
+
+- `customerId` obrigatório na criação e opcional na edição.
+- `note` opcional, com até 2000 caracteres; `null` limpa a observação.
+- `products` e `services` são opcionais individualmente, mas a ordem precisa
+  ter pelo menos um item no total.
+- Cada produto envia `productId`, `unitPriceCents` e `quantity` (1–9999).
+- Cada serviço envia `serviceId` e `priceCents`.
+- Os preços são obrigatórios no request. A UI pode pré-preencher com o valor do
+  catálogo, mas o vendedor pode alterar o valor praticado na ordem.
+- Alterar o preço na ordem **não altera** o preço do produto ou serviço no
+  catálogo.
+- O nome do produto/serviço é congelado quando o item entra na ordem. Renomear
+  ou excluir o item do catálogo não altera ordens antigas.
+- Produtos e serviços duplicados na mesma lista são rejeitados.
+- Cliente, produto e serviço precisam existir no tenant e não podem estar
+  excluídos no momento da criação/edição.
+- A ordem recebe um protocolo numérico sequencial por tenant, iniciando em
+  `100001`; o protocolo não pode ser alterado.
+- A listagem aceita `limit`, `offset`, `protocol` (busca parcial),
+  `customerId`, `productId` e `serviceId`, no envelope `{ data, meta }`.
+- `PATCH` com `products` ou `services` substitui a lista inteira enviada; se
+  apenas um dos arrays for enviado, o outro é mantido.
+- A exclusão é **soft delete** (`deleted_at`); a ordem some das consultas, mas
+  os itens permanecem no banco.
+
+**Criar ordem de serviço**
+
+```http
+POST /v1/service-orders
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "customerId": "cus_AaFXJKFudkiOtV8yn8ts-g",
+  "note": "Troca de óleo e revisão",
+  "products": [
+    {
+      "productId": "prd_AaFXJKFudkiOtV8yn8ts-g",
+      "unitPriceCents": 3500,
+      "quantity": 2
+    }
+  ],
+  "services": [
+    {
+      "serviceId": "srv_AaFXJKFudkiOtV8yn8ts-g",
+      "priceCents": 12000
+    }
+  ]
+}
+```
+
+Resposta `201`:
+
+```json
+{
+  "id": "ord_AaFXJKFudkiOtV8yn8ts-g",
+  "protocol": "100001",
+  "note": "Troca de óleo e revisão",
+  "customer": {
+    "id": "cus_AaFXJKFudkiOtV8yn8ts-g",
+    "name": "Maria",
+    "address": null,
+    "document": null,
+    "documentType": null,
+    "phoneNumber": null
+  },
+  "products": [
+    {
+      "productId": "prd_AaFXJKFudkiOtV8yn8ts-g",
+      "name": "Óleo 5W30",
+      "unitPriceCents": 3500,
+      "quantity": 2,
+      "totalCents": 7000
+    }
+  ],
+  "services": [
+    {
+      "serviceId": "srv_AaFXJKFudkiOtV8yn8ts-g",
+      "name": "Troca de óleo",
+      "priceCents": 12000
+    }
+  ],
+  "totalCents": 19000,
+  "createdAt": "2026-10-22T12:00:00.000Z",
+  "updatedAt": "2026-10-22T12:00:00.000Z"
+}
+```
+
+**Editar ordem de serviço**
+
+PATCH com `customerId`, `note`, `products` e/ou `services`. Ao menos um campo
+deve ser enviado. O protocolo não é editável.
+
+**Excluir ordem de serviço**
+
+`DELETE /v1/service-orders/:id` retorna `204`. A ordem some da listagem e das
+buscas por ID, mas o registro e seus itens permanecem no banco com `deleted_at`
+preenchido.
+
 ## Scripts
 
 | Comando            | Descrição                        |
@@ -532,7 +650,7 @@ Em produção, rode `pnpm build` e use as variantes `:prod` (`db:migrate:prod`,
 ## Arquitetura
 
 O backend segue os conceitos de **Clean Architecture** em um modular monolith. Cada contexto
-(`identity`, `customers`, `products`, `services`) é dividido em:
+(`identity`, `customers`, `products`, `services`, `service-orders`) é dividido em:
 
 ```
 domain/           # entidades, value objects, erros e ports — TypeScript puro
@@ -545,17 +663,18 @@ A regra de dependência aponta sempre para dentro: `presentation` e `infrastruct
 `application`, que depende de `domain`. O domínio não conhece NestJS, Knex ou qualquer detalhe
 externo. A composição acontece no `<module>.module.ts`.
 
-Os contextos `identity`, `customers`, `products` e `services` têm as quatro camadas implementadas. O
-padrão completo está em
+Os contextos `identity`, `customers`, `products`, `services` e `service-orders` têm as quatro
+camadas implementadas. O padrão completo está em
 [`apps/api/src/modules/README.md`](apps/api/src/modules/README.md).
 
 ## Status do projeto
 
 O projeto está **no início**. O scaffold do monorepo, a API base, o contexto de identity (tenants,
 accounts, autenticação, reset de senha, criação, listagem, edição e bloqueio de contas), o módulo de
-clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft delete) e o módulo de
-serviços (CRUD com preço em centavos e soft delete) já estão implementados. As demais
-funcionalidades de negócio ainda não foram implementadas.
+clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft delete), o módulo de
+serviços (CRUD com preço em centavos e soft delete) e o módulo de ordens de serviço (protocolo
+sequencial, itens com preços personalizados, snapshots de nome e soft delete) já estão
+implementados. As demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 

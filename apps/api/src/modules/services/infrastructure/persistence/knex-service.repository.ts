@@ -23,6 +23,21 @@ export class KnexServiceRepository implements ServiceRepository {
     return row ? serviceMapper.toDomain(row) : null;
   }
 
+  async findByIds(tenantId: string, ids: string[]): Promise<Service[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const rows = (await this.uow
+      .executor('services')
+      .where({ tenant_id: tenantId })
+      .whereIn('id', ids)
+      .whereNull('deleted_at')
+      .select('*')) as ServiceRow[];
+
+    return rows.map((row) => serviceMapper.toDomain(row));
+  }
+
   async list(filters: ServiceListFilters): Promise<ServiceListResult> {
     const query = this.uow
       .executor('services')

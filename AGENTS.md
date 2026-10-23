@@ -40,7 +40,8 @@ apps/
 │     │  ├─ identity/           # tenants, accounts, auth, password reset
 │     │  ├─ customers/          # CRUD de clientes
 │     │  ├─ products/           # CRUD de produtos
-│     │  └─ services/           # CRUD de serviços
+│     │  ├─ services/           # CRUD de serviços
+│     │  └─ service-orders/     # CRUD de ordens de serviço
 │     └─ shared/                # ports, erros, filtros, IDs, UoW, database helpers
 ├─ web/                         # Next.js (apenas placeholder por enquanto)
 packages/
@@ -149,6 +150,7 @@ Formato:
   - `cus` → customer
   - `prd` → product
   - `srv` → service
+  - `ord` → service order
 - Banco guarda UUIDv7 puro; o prefixo existe apenas na borda HTTP.
 - `encodePublicId`/`decodePublicId` em `src/shared/ids/public-id.ts`.
 - `decodePublicId` valida prefixo, base64url canônico, UUIDv7 e variante.
@@ -308,12 +310,56 @@ DELETE /v1/services/:id
 - Migration `008` inclui check constraint `price_cents >= 0`.
 - IDs públicos usam o prefixo `srv_`.
 
+## Ordens de serviço (service-orders)
+
+Rotas:
+
+```text
+POST   /v1/service-orders
+GET    /v1/service-orders?limit&offset&protocol&customerId&productId&serviceId
+GET    /v1/service-orders/:id
+PATCH  /v1/service-orders/:id
+DELETE /v1/service-orders/:id
+```
+
+- `customerId` obrigatório na criação e opcional no PATCH.
+- `note` opcional, até 2000 caracteres; `null` limpa a observação.
+- `products` e `services` são opcionais individualmente, mas a ordem precisa ter
+  pelo menos um item no total.
+- Produto: `productId`, `unitPriceCents` inteiro `>= 0` e `quantity` 1–9999.
+- Serviço: `serviceId` e `priceCents` inteiro `>= 0`.
+- Preços são obrigatórios e representam o valor praticado na ordem; não alteram
+  o catálogo.
+- O nome do produto/serviço é congelado no item (`product_name`/`service_name`)
+  quando o item entra na ordem. Renomear ou excluir o catálogo não altera ordens
+  antigas.
+- `PATCH` com `products`/`services` substitui a lista enviada; o outro array é
+  mantido quando omitido.
+- Itens duplicados, quantidade inválida, preço inválido e ordem vazia são
+  rejeitados.
+- Cliente, produto e serviço precisam existir no tenant e não podem estar
+  excluídos no momento da criação/edição.
+- Criação/edição carregam produtos e serviços em lote (`WHERE IN`), não item a
+  item.
+- Protocolo numérico sequencial por tenant, começando em `100001`, gerado dentro
+  da transação com `service_order_counters`; não é editável.
+- Protocolo único por tenant (`unique (tenant_id, protocol)`), não reutilizado
+  após soft delete.
+- **Soft delete** (`deleted_at`) na ordem; os itens permanecem.
+- Listagem com paginação, `protocol` parcial, `customerId`, `productId` e
+  `serviceId`; resposta `{ data, meta }`.
+- A resposta inclui cliente, ordem, produtos, serviços e `totalCents`.
+- Migration `009` cria `service_orders`, `service_order_products`,
+  `service_order_services` e `service_order_counters`.
+- IDs públicos usam o prefixo `ord_`.
+
 ## Banco de dados
 
 - Knex + SQLite (dev/testes) e PostgreSQL (prod).
-- Migrations em `apps/api/src/database/migrations` (001–008):
+- Migrations em `apps/api/src/database/migrations` (001–009):
   001 tenants, 002 accounts, 003 refresh_tokens, 004 password_reset_tokens,
-  005 account status, 006 customers, 007 products, 008 services.
+  005 account status, 006 customers, 007 products, 008 services,
+  009 service orders.
 - UUIDv7 gerado na aplicação (`uuid`), timestamps na aplicação (`Clock`).
 - Dinheiro deve ser armazenado em **centavos (integer/bigInteger)**.
 - SQLite: pool min/max 1 e `PRAGMA foreign_keys = ON` via `pool.afterCreate`.
@@ -384,7 +430,7 @@ DELETE /v1/services/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 128 testes na API + 1 no web. Sempre manter lint, typecheck,
+- Estado atual: 150 testes na API + 1 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -394,7 +440,7 @@ DELETE /v1/services/:id
 - `apps/web/src/modules` espelha os contextos da API.
 - Client HTTP em `shared/lib/api-client.ts` (credentials include).
 - Ainda faltam: telas de login/registro, recuperação de senha, contas, clientes,
-  produtos e serviços.
+  produtos, serviços e ordens de serviço.
 - A página `/reset-password` mencionada nos e-mails ainda não existe.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 
@@ -416,18 +462,20 @@ DELETE /v1/services/:id
 - Serviços: mesmo contrato de produtos, com API 100% em centavos (`priceCents`
   inteiro), soft delete e IDs `srv_`; `name`, `description` e `priceCents`
   obrigatórios.
+- Ordens de serviço: protocolo numérico sequencial por tenant, itens com preços
+  praticados independentes do catálogo, snapshots de nome de produto/serviço,
+  soft delete e IDs `ord_`.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 
 ## Próximos passos naturais
 
-1. Telas de auth (login, registro, reset), clientes, produtos e serviços no
-   frontend.
+1. Telas de auth (login, registro, reset), clientes, produtos, serviços e ordens
+   de serviço no frontend.
 2. Papéis/permissões (OWNER/STAFF) e convite de contas.
-3. Ordens de serviço.
-4. Estoque e movimentações.
-5. Faturamento/nota (port + adapter, provedor depois).
-6. Hardening: rate limit global, observabilidade, revogação imediata de access
+3. Estoque e movimentações.
+4. Faturamento/nota (port + adapter, provedor depois).
+5. Hardening: rate limit global, observabilidade, revogação imediata de access
    token via `tokenVersion`, auditoria.
 
 ## Checklist antes de finalizar uma mudança

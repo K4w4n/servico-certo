@@ -18,5 +18,6 @@ import { IdentityModule } from '../identity/identity.module.js';
     ListCustomersUseCase,
     { provide: CUSTOMER_REPOSITORY, useClass: KnexCustomerRepository },
   ],
+  exports: [CUSTOMER_REPOSITORY],
 })
 export class CustomersModule {}

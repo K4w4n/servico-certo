@@ -16,6 +16,7 @@ export type ProductListResult = {
 
 export interface ProductRepository {
   findById(tenantId: string, id: string): Promise<Product | null>;
+  findByIds(tenantId: string, ids: string[]): Promise<Product[]>;
   list(filters: ProductListFilters): Promise<ProductListResult>;
   save(product: Product): Promise<void>;
   softDelete(tenantId: string, id: string, deletedAt: Date): Promise<boolean>;

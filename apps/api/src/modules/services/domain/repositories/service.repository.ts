@@ -16,6 +16,7 @@ export type ServiceListResult = {
 
 export interface ServiceRepository {
   findById(tenantId: string, id: string): Promise<Service | null>;
+  findByIds(tenantId: string, ids: string[]): Promise<Service[]>;
   list(filters: ServiceListFilters): Promise<ServiceListResult>;
   save(service: Service): Promise<void>;
   softDelete(tenantId: string, id: string, deletedAt: Date): Promise<boolean>;

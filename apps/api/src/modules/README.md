@@ -1,7 +1,7 @@
 # Módulos de negócio
 
-Cada contexto de negócio (`identity`, `customers`, `products`, `services`) segue o mesmo layout de
-Clean Architecture:
+Cada contexto de negócio (`identity`, `customers`, `products`, `services`, `service-orders`) segue o
+mesmo layout de Clean Architecture:
 
 ```
 <module>/
@@ -27,5 +27,5 @@ infrastructure ─▶ application ──▶ domain
 - O `<module>.module.ts` é o único lugar que conhece todas as camadas e faz a
   composição das dependências.
 
-Os contextos `identity`, `customers`, `products` e `services` estão implementados com as quatro
-camadas.
+Os contextos `identity`, `customers`, `products`, `services` e `service-orders` estão implementados
+com as quatro camadas.
