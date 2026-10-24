@@ -4,9 +4,16 @@ import { productIdSchema } from '../shared/public-id.js';
 
 export const MAX_PRODUCT_PRICE_CENTS = 9_999_999_999;
 
-export const productNameSchema = z.string().trim().min(1).max(160);
+export const productNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Informe o nome do produto')
+  .max(160, 'O nome deve ter no máximo 160 caracteres');
 
-export const productDescriptionSchema = z.string().trim().min(1).max(2000);
+export const productDescriptionSchema = z
+  .string()
+  .trim()
+  .max(2000, 'A descrição deve ter no máximo 2000 caracteres');
 
 export const productPriceCentsSchema = z
   .number()
@@ -17,7 +24,7 @@ export const productPriceCentsSchema = z
 export const productSchema = z.object({
   id: productIdSchema,
   name: z.string().min(1).max(160),
-  description: z.string().min(1).max(2000),
+  description: z.string().max(2000),
   priceCents: productPriceCentsSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -26,7 +33,7 @@ export const productSchema = z.object({
 export const createProductSchema = z
   .object({
     name: productNameSchema,
-    description: productDescriptionSchema,
+    description: productDescriptionSchema.default(''),
     priceCents: productPriceCentsSchema,
   })
   .strict();

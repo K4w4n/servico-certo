@@ -148,6 +148,27 @@ describe('Products (e2e)', () => {
     expect(response.body.priceCents).toBe(0);
   });
 
+  it('aceita descrição ausente e permite limpar a descrição', async () => {
+    const withoutDescription = await createProduct(tenantA, {
+      name: 'Produto sem descrição',
+      priceCents: 1000,
+    }).expect(201);
+
+    expect(withoutDescription.body.description).toBe('');
+
+    const withDescription = await createProduct(tenantA, {
+      name: 'Produto com descrição removível',
+      description: 'Descrição',
+      priceCents: 1500,
+    }).expect(201);
+
+    const cleared = await updateProduct(tenantA, withDescription.body.id, {
+      description: '',
+    }).expect(200);
+
+    expect(cleared.body.description).toBe('');
+  });
+
   it('rejeita campos obrigatórios ausentes', async () => {
     const empty = await createProduct(tenantA, {}).expect(400);
     expect(empty.body.error.code).toBe('VALIDATION_ERROR');

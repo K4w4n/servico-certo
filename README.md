@@ -382,7 +382,7 @@ prefixo `prd_`.
 **Campos**
 
 - `name` obrigatório (até 160 caracteres).
-- `description` obrigatório (até 2000 caracteres).
+- `description` opcional (até 2000 caracteres).
 - `priceCents` obrigatório na criação/edição, inteiro maior ou igual a zero.
 - `createdAt` e `updatedAt` são retornados em ISO 8601.
 - Requests e respostas usam **centavos** no campo `priceCents`.
@@ -676,8 +676,8 @@ clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft dele
 serviços (CRUD com preço em centavos e soft delete) e o módulo de ordens de serviço (protocolo
 sequencial, itens com preços personalizados, snapshots de nome e soft delete) já estão
 implementados. No frontend, login, registro de tenant, recuperação de senha, gestão de clientes,
-gestão de usuários (contas) e a sessão com renovação de token já funcionam. As demais
-funcionalidades de negócio ainda não foram implementadas.
+gestão de produtos, gestão de usuários (contas) e a sessão com renovação de token já funcionam. As
+demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 
