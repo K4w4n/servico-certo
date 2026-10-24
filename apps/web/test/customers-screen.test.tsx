@@ -384,6 +384,41 @@ describe('CustomersScreen', () => {
     expect(documentInput).toHaveValue('529.982.247-25');
   });
 
+  it('formata o telefone ao sair do campo na criação', async () => {
+    render(<CustomersScreen />);
+    await screen.findByText('Maria Silva');
+
+    const dialog = await openCreateDialog();
+    const phoneInput = within(dialog).getByLabelText('Telefone');
+
+    fireEvent.change(phoneInput, { target: { value: '11999998888' } });
+    fireEvent.blur(phoneInput);
+
+    expect(phoneInput).toHaveValue('(11) 99999-8888');
+
+    fireEvent.change(phoneInput, { target: { value: '1133334444' } });
+    fireEvent.blur(phoneInput);
+
+    expect(phoneInput).toHaveValue('(11) 3333-4444');
+  });
+
+  it('formata o telefone ao sair do campo na edição', async () => {
+    render(<CustomersScreen />);
+    await screen.findByText('Maria Silva');
+
+    fireEvent.click(getRow('Maria Silva').getByRole('button', { name: 'Editar' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Editar cliente' });
+    const phoneInput = within(dialog).getByLabelText('Telefone');
+
+    expect(phoneInput).toHaveValue('(11) 99999-8888');
+
+    fireEvent.change(phoneInput, { target: { value: '1133334444' } });
+    fireEvent.blur(phoneInput);
+
+    expect(phoneInput).toHaveValue('(11) 3333-4444');
+  });
+
   it('valida o tamanho do CPF', async () => {
     render(<CustomersScreen />);
     await screen.findByText('Maria Silva');

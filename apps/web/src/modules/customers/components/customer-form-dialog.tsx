@@ -126,6 +126,14 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
     }
   }
 
+  function handlePhoneBlur() {
+    const phone = normalizePhoneNumber(values.phoneNumber);
+
+    if (phone.length === 10 || phone.length === 11) {
+      setValues((current) => ({ ...current, phoneNumber: formatPhoneNumber(phone) }));
+    }
+  }
+
   function validateDocumentPair(): boolean {
     const document = normalizeDocument(values.document);
     const hasDocument = document.length > 0;
@@ -417,6 +425,7 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
             maxLength={15}
             value={values.phoneNumber}
             onChange={handleChange('phoneNumber')}
+            onBlur={handlePhoneBlur}
             aria-invalid={Boolean(fieldErrors.phoneNumber)}
             aria-describedby={
               fieldErrors.phoneNumber ? 'customer-phone-error' : 'customer-phone-hint'

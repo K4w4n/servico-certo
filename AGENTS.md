@@ -430,7 +430,7 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 150 testes na API + 79 no web. Sempre manter lint, typecheck,
+- Estado atual: 150 testes na API + 81 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -476,8 +476,8 @@ DELETE /v1/service-orders/:id
 - Gestão de clientes: `/customers` lista os clientes do tenant com paginação e
   filtros por nome/documento, criação, edição e exclusão com confirmação. O
   documento é opcional, mas `document` e `documentType` devem ser informados
-  juntos; o campo de documento só aparece com CPF/CNPJ selecionado e é formatado
-  ao sair do campo. CPF/CNPJ e telefone são normalizados pela API. Excluir é
+  juntos; o campo de documento só aparece com CPF/CNPJ selecionado; documento e
+  telefone são formatados ao sair do campo e normalizados pela API. Excluir é
   soft delete: o cliente sai da lista e não pode ser usado em novas ordens de
   serviço.
 - Ainda faltam: produtos, serviços e ordens de serviço.
