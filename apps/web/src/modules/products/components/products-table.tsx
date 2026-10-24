@@ -3,7 +3,7 @@
 import type { Product } from '@servico-certo/contracts';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
-import { formatPrice } from '../lib/product-format';
+import { formatPrice } from '@/shared/lib/price';
 
 type ProductsTableProps = {
   products: Product[];

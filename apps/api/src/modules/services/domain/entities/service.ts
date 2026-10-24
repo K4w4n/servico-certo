@@ -112,7 +112,7 @@ function normalizeName(raw: string): string {
 function normalizeDescription(raw: string): string {
   const value = raw.trim();
 
-  if (value.length < 1 || value.length > 2000) {
+  if (value.length > 2000) {
     throw new InvalidServiceDescriptionError();
   }
 

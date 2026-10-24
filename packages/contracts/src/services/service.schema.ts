@@ -4,9 +4,16 @@ import { serviceIdSchema } from '../shared/public-id.js';
 
 export const MAX_SERVICE_PRICE_CENTS = 9_999_999_999;
 
-export const serviceNameSchema = z.string().trim().min(1).max(160);
+export const serviceNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Informe o nome do serviço')
+  .max(160, 'O nome deve ter no máximo 160 caracteres');
 
-export const serviceDescriptionSchema = z.string().trim().min(1).max(2000);
+export const serviceDescriptionSchema = z
+  .string()
+  .trim()
+  .max(2000, 'A descrição deve ter no máximo 2000 caracteres');
 
 export const servicePriceCentsSchema = z
   .number()
@@ -17,7 +24,7 @@ export const servicePriceCentsSchema = z
 export const serviceSchema = z.object({
   id: serviceIdSchema,
   name: z.string().min(1).max(160),
-  description: z.string().min(1).max(2000),
+  description: z.string().max(2000),
   priceCents: servicePriceCentsSchema,
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -26,7 +33,7 @@ export const serviceSchema = z.object({
 export const createServiceSchema = z
   .object({
     name: serviceNameSchema,
-    description: serviceDescriptionSchema,
+    description: serviceDescriptionSchema.default(''),
     priceCents: servicePriceCentsSchema,
   })
   .strict();

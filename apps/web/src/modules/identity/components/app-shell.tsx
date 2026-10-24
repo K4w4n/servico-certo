@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/', label: 'Início' },
   { href: '/customers', label: 'Clientes' },
   { href: '/products', label: 'Produtos' },
+  { href: '/services', label: 'Serviços' },
   { href: '/accounts', label: 'Usuários' },
 ] as const;
 

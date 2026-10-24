@@ -297,8 +297,8 @@ PATCH  /v1/services/:id
 DELETE /v1/services/:id
 ```
 
-- `name`, `description` e `priceCents` são obrigatórios.
-- `name` até 160 caracteres; `description` até 2000 caracteres.
+- `name` e `priceCents` são obrigatórios; `description` é opcional.
+- `name` até 160 caracteres; `description` até 2000 caracteres quando informada.
 - Requests e respostas usam `priceCents` inteiro `>= 0` (ex.: `12000`).
 - O banco persiste `price_cents` como `bigInteger`, para precisão.
 - A resposta inclui `createdAt` e `updatedAt` em ISO 8601.
@@ -430,7 +430,7 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 151 testes na API + 102 no web. Sempre manter lint, typecheck,
+- Estado atual: 152 testes na API + 120 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -438,7 +438,8 @@ DELETE /v1/service-orders/:id
 - Next.js App Router; login em `/login`, registro de tenant em `/register`,
   recuperação de senha em `/forgot-password` e `/reset-password`, gestão de
   clientes em `/customers`, gestão de produtos em `/products`, gestão de
-  usuários em `/accounts`, e home protegida em `/`.
+  serviços em `/services`, gestão de usuários em `/accounts`, e home protegida
+  em `/`.
 - Tailwind v4 + shadcn/ui configurado; primitivos locais em `shared/ui`
   (`button`, `input`, `label`, `alert`, `dialog`, `select`, `textarea`).
 - `apps/web/src/modules` espelha os contextos da API; auth fica em
@@ -454,9 +455,15 @@ DELETE /v1/service-orders/:id
   `components/customers-screen.tsx`, `components/customers-table.tsx`,
   `components/customers-filters.tsx`, `components/customer-form-dialog.tsx`).
   Produtos ficam em `modules/products` (`lib/products-api.ts`,
-  `lib/product-errors.ts`, `lib/product-format.ts`,
-  `components/products-screen.tsx`, `components/products-table.tsx`,
-  `components/products-filters.tsx`, `components/product-form-dialog.tsx`).
+  `lib/product-errors.ts`, `components/products-screen.tsx`,
+  `components/products-table.tsx`, `components/products-filters.tsx`,
+  `components/product-form-dialog.tsx`).
+  Serviços ficam em `modules/services` (`lib/services-api.ts`,
+  `lib/service-errors.ts`, `components/services-screen.tsx`,
+  `components/services-table.tsx`, `components/services-filters.tsx`,
+  `components/service-form-dialog.tsx`).
+  Preço (formatação/parse em reais e centavos) é compartilhado em
+  `shared/lib/price.ts`.
 - `AuthProvider` no `layout.tsx` mantém a sessão: access token apenas em
   memória, restauração via `/v1/auth/refresh` no carregamento, renovação
   proativa antes de expirar (com jitter e apenas com aba visível) e retry
@@ -490,7 +497,12 @@ DELETE /v1/service-orders/:id
   (`45,90`), formata o preço ao sair do campo e envia `priceCents` para a API.
   Excluir é soft delete: o produto sai da lista e não pode ser usado em novas
   ordens de serviço.
-- Ainda faltam: serviços e ordens de serviço.
+- Gestão de serviços: `/services` lista os serviços do tenant com paginação e
+  filtro por nome, criação, edição e exclusão com confirmação. Nome e preço são
+  obrigatórios; a descrição é opcional. O formulário trabalha em reais, formata
+  o preço ao sair do campo e envia `priceCents` para a API. Excluir é soft
+  delete: o serviço sai da lista e não pode ser usado em novas ordens de serviço.
+- Ainda faltam: ordens de serviço.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
 
@@ -510,8 +522,8 @@ DELETE /v1/service-orders/:id
   e banco em centavos; soft delete; `name` e `priceCents` obrigatórios e
   `description` opcional.
 - Serviços: mesmo contrato de produtos, com API 100% em centavos (`priceCents`
-  inteiro), soft delete e IDs `srv_`; `name`, `description` e `priceCents`
-  obrigatórios.
+  inteiro), soft delete e IDs `srv_`; `name` e `priceCents` obrigatórios e
+  `description` opcional.
 - Ordens de serviço: protocolo numérico sequencial por tenant, itens com preços
   praticados independentes do catálogo, snapshots de nome de produto/serviço,
   soft delete e IDs `ord_`.

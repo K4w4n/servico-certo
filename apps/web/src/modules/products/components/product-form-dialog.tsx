@@ -17,7 +17,7 @@ import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { createProduct, updateProduct } from '../lib/products-api';
 import { getProductErrorMessage } from '../lib/product-errors';
-import { formatPriceInput, parsePriceToCents } from '../lib/product-format';
+import { formatPriceInput, parsePriceToCents } from '@/shared/lib/price';
 
 type FieldName = 'name' | 'description' | 'price';
 type FieldErrors = Partial<Record<FieldName, string>>;

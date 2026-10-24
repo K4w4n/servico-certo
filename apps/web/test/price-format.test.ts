@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatPriceInput, parsePriceToCents } from '@/modules/products/lib/product-format';
+import { formatPriceInput, parsePriceToCents } from '@/shared/lib/price';
 
-describe('product-format', () => {
+describe('price-format', () => {
   it('converte preços em reais para centavos', () => {
     expect(parsePriceToCents('45,90')).toBe(4590);
     expect(parsePriceToCents('1.234,56')).toBe(123456);
