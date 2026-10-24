@@ -430,16 +430,17 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 150 testes na API + 55 no web. Sempre manter lint, typecheck,
+- Estado atual: 150 testes na API + 79 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
 
 - Next.js App Router; login em `/login`, registro de tenant em `/register`,
   recuperação de senha em `/forgot-password` e `/reset-password`, gestão de
-  usuários em `/accounts`, e home protegida em `/`.
+  clientes em `/customers`, gestão de usuários em `/accounts`, e home protegida
+  em `/`.
 - Tailwind v4 + shadcn/ui configurado; primitivos locais em `shared/ui`
-  (`button`, `input`, `label`, `alert`, `dialog`).
+  (`button`, `input`, `label`, `alert`, `dialog`, `select`, `textarea`).
 - `apps/web/src/modules` espelha os contextos da API; auth fica em
   `modules/identity` (`lib/auth-api.ts`, `lib/accounts-api.ts`,
   `providers/auth-provider.tsx`, `components/app-shell.tsx`,
@@ -448,6 +449,10 @@ DELETE /v1/service-orders/:id
   `components/accounts-screen.tsx`, `components/accounts-table.tsx`,
   `components/accounts-filters.tsx`, `components/account-form-dialog.tsx`,
   `components/account-password-dialog.tsx`, `components/confirm-dialog.tsx`).
+  Clientes ficam em `modules/customers` (`lib/customers-api.ts`,
+  `lib/customer-errors.ts`, `lib/customer-format.ts`,
+  `components/customers-screen.tsx`, `components/customers-table.tsx`,
+  `components/customers-filters.tsx`, `components/customer-form-dialog.tsx`).
 - `AuthProvider` no `layout.tsx` mantém a sessão: access token apenas em
   memória, restauração via `/v1/auth/refresh` no carregamento, renovação
   proativa antes de expirar (com jitter e apenas com aba visível) e retry
@@ -468,7 +473,14 @@ DELETE /v1/service-orders/:id
   Editar o próprio nome ou e-mail sincroniza o cabeçalho via `updateAccount` do
   `AuthProvider`. Trocar a própria senha derruba os refresh tokens, mas mantém o
   access token atual até expirar.
-- Ainda faltam: clientes, produtos, serviços e ordens de serviço.
+- Gestão de clientes: `/customers` lista os clientes do tenant com paginação e
+  filtros por nome/documento, criação, edição e exclusão com confirmação. O
+  documento é opcional, mas `document` e `documentType` devem ser informados
+  juntos; o campo de documento só aparece com CPF/CNPJ selecionado e é formatado
+  ao sair do campo. CPF/CNPJ e telefone são normalizados pela API. Excluir é
+  soft delete: o cliente sai da lista e não pode ser usado em novas ordens de
+  serviço.
+- Ainda faltam: produtos, serviços e ordens de serviço.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
 

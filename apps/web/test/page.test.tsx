@@ -42,6 +42,7 @@ describe('Home', () => {
     expect(screen.getAllByText('Oficina do João').length).toBeGreaterThan(0);
     expect(screen.getByText('joao@exemplo.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Clientes' })).toHaveAttribute('href', '/customers');
     expect(screen.getByRole('link', { name: 'Usuários' })).toHaveAttribute('href', '/accounts');
   });
 });

@@ -9,6 +9,7 @@ import { useAuth } from '../providers/auth-provider';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Início' },
+  { href: '/customers', label: 'Clientes' },
   { href: '/accounts', label: 'Usuários' },
 ] as const;
 

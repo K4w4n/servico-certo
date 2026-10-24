@@ -4,9 +4,17 @@ import { customerIdSchema } from '../shared/public-id.js';
 
 export const customerDocumentTypeSchema = z.enum(['CPF', 'CNPJ']);
 
-export const customerNameSchema = z.string().trim().min(1).max(160);
+export const customerNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Informe o nome do cliente')
+  .max(160, 'O nome deve ter no máximo 160 caracteres');
 
-export const customerAddressSchema = z.string().trim().max(500).nullable();
+export const customerAddressSchema = z
+  .string()
+  .trim()
+  .max(500, 'O endereço deve ter no máximo 500 caracteres')
+  .nullable();
 
 const normalizeDocument = (value: string): string =>
   value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -16,7 +24,7 @@ const normalizePhoneNumber = (value: string): string => value.replace(/\D/g, '')
 export const customerDocumentValueSchema = z
   .string()
   .transform(normalizeDocument)
-  .pipe(z.string().min(11).max(14));
+  .pipe(z.string().min(11, 'Documento inválido').max(14, 'Documento inválido'));
 
 export const customerPhoneNumberSchema = z
   .string()
