@@ -676,8 +676,9 @@ clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft dele
 serviços (CRUD com preço em centavos e soft delete) e o módulo de ordens de serviço (protocolo
 sequencial, itens com preços personalizados, snapshots de nome e soft delete) já estão
 implementados. No frontend, login, registro de tenant, recuperação de senha, gestão de clientes,
-gestão de produtos, gestão de serviços, gestão de usuários (contas) e a sessão com renovação de token
-já funcionam. As demais funcionalidades de negócio ainda não foram implementadas.
+gestão de produtos, gestão de serviços, gestão de ordens de serviço, gestão de usuários (contas) e a
+sessão com renovação de token já funcionam. As demais funcionalidades de negócio ainda não foram
+implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 

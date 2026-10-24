@@ -430,7 +430,7 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 152 testes na API + 120 no web. Sempre manter lint, typecheck,
+- Estado atual: 152 testes na API + 146 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -438,10 +438,11 @@ DELETE /v1/service-orders/:id
 - Next.js App Router; login em `/login`, registro de tenant em `/register`,
   recuperação de senha em `/forgot-password` e `/reset-password`, gestão de
   clientes em `/customers`, gestão de produtos em `/products`, gestão de
-  serviços em `/services`, gestão de usuários em `/accounts`, e home protegida
-  em `/`.
+  serviços em `/services`, gestão de ordens de serviço em `/service-orders`,
+  gestão de usuários em `/accounts`, e home protegida em `/`.
 - Tailwind v4 + shadcn/ui configurado; primitivos locais em `shared/ui`
-  (`button`, `input`, `label`, `alert`, `dialog`, `select`, `textarea`).
+  (`button`, `input`, `label`, `alert`, `dialog`, `select`, `searchable-select`,
+  `textarea`).
 - `apps/web/src/modules` espelha os contextos da API; auth fica em
   `modules/identity` (`lib/auth-api.ts`, `lib/accounts-api.ts`,
   `providers/auth-provider.tsx`, `components/app-shell.tsx`,
@@ -462,8 +463,14 @@ DELETE /v1/service-orders/:id
   `lib/service-errors.ts`, `components/services-screen.tsx`,
   `components/services-table.tsx`, `components/services-filters.tsx`,
   `components/service-form-dialog.tsx`).
+  Ordens de serviço ficam em `modules/service-orders`
+  (`lib/service-orders-api.ts`, `lib/service-order-errors.ts`,
+  `lib/service-order-format.ts`, `lib/service-order-references.ts`,
+  `components/service-orders-screen.tsx`, `components/service-orders-table.tsx`,
+  `components/service-orders-filters.tsx`, `components/service-order-form-dialog.tsx`).
   Preço (formatação/parse em reais e centavos) é compartilhado em
-  `shared/lib/price.ts`.
+  `shared/lib/price.ts`; `shared/lib/load-all.ts` carrega todas as páginas dos
+  catálogos usados pelos selects.
 - `AuthProvider` no `layout.tsx` mantém a sessão: access token apenas em
   memória, restauração via `/v1/auth/refresh` no carregamento, renovação
   proativa antes de expirar (com jitter e apenas com aba visível) e retry
@@ -502,7 +509,16 @@ DELETE /v1/service-orders/:id
   obrigatórios; a descrição é opcional. O formulário trabalha em reais, formata
   o preço ao sair do campo e envia `priceCents` para a API. Excluir é soft
   delete: o serviço sai da lista e não pode ser usado em novas ordens de serviço.
-- Ainda faltam: ordens de serviço.
+- Gestão de ordens de serviço: `/service-orders` lista as ordens com paginação
+  e filtros por protocolo, cliente, produto e serviço; criação, edição e
+  exclusão com confirmação. Clientes, produtos e serviços usam selects com
+  pesquisa local por nome (sem diferenciar maiúsculas ou acentos) nos filtros e
+  no formulário. O formulário seleciona itens do catálogo, pré-preenche o preço
+  com o valor do item, permite alterar o valor praticado e a quantidade
+  (1–9999), exige ao menos um item e calcula o total. Na edição, o PATCH envia
+  apenas cliente, observação ou a lista de itens que mudou. O protocolo é gerado
+  pela API e não é editável. Excluir é soft delete.
+- Ainda faltam: estoque, faturamento/nota e papéis/permissões.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
 
@@ -532,12 +548,10 @@ DELETE /v1/service-orders/:id
 
 ## Próximos passos naturais
 
-1. Telas de auth (login, registro, reset), clientes, produtos, serviços e ordens
-   de serviço no frontend.
-2. Papéis/permissões (OWNER/STAFF) e convite de contas.
-3. Estoque e movimentações.
-4. Faturamento/nota (port + adapter, provedor depois).
-5. Hardening: rate limit global, observabilidade, revogação imediata de access
+1. Papéis/permissões (OWNER/STAFF) e convite de contas.
+2. Estoque e movimentações.
+3. Faturamento/nota (port + adapter, provedor depois).
+4. Hardening: rate limit global, observabilidade, revogação imediata de access
    token via `tokenVersion`, auditoria.
 
 ## Checklist antes de finalizar uma mudança
