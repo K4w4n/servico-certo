@@ -154,9 +154,10 @@ Fluxo em três etapas:
 - Token de uso único, válido por **30 minutos**, salvo apenas como SHA-256.
 - Solicitar um novo link invalida os tokens pendentes anteriores.
 - A confirmação revoga todos os refresh tokens da conta.
-- A rota de solicitação tem rate limit de **3 tentativas por 15 minutos por IP**.
-- A página `/reset-password` do frontend ainda será criada; por enquanto o link
-  pode ser usado diretamente no Swagger.
+- A solicitação tem rate limit de **3 tentativas por 15 minutos por IP**.
+- No frontend, `/forgot-password` solicita o link e `/reset-password?token=...`
+  valida o token, permite definir a nova senha e trata link expirado ou já
+  utilizado.
 
 **Envio de e-mail:** por padrão `MAIL_TRANSPORT=console`, que imprime o link no
 log da API. Para usar SMTP, configure `MAIL_TRANSPORT=smtp` e as variáveis
@@ -674,8 +675,8 @@ accounts, autenticação, reset de senha, criação, listagem, edição e bloque
 clientes (CRUD com CPF/CNPJ), o módulo de produtos (CRUD com preço e soft delete), o módulo de
 serviços (CRUD com preço em centavos e soft delete) e o módulo de ordens de serviço (protocolo
 sequencial, itens com preços personalizados, snapshots de nome e soft delete) já estão
-implementados. No frontend, a tela de login, o registro de tenant e a sessão com renovação de token já
-funcionam. As demais funcionalidades de negócio ainda não foram implementadas.
+implementados. No frontend, login, registro de tenant, recuperação de senha e a sessão com renovação
+de token já funcionam. As demais funcionalidades de negócio ainda não foram implementadas.
 
 ## IA no desenvolvimento: uma visão pragmática
 

@@ -22,6 +22,15 @@ export default function LoginPage() {
 
         <div className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
           <LoginForm />
+
+          <div className="mt-5 text-center">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-foreground underline underline-offset-4"
+            >
+              Esqueci minha senha
+            </Link>
+          </div>
         </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
