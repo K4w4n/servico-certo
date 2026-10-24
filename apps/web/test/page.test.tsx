@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mocks.replace }),
+  usePathname: () => '/',
 }));
 
 vi.mock('@/modules/identity/providers/auth-provider', () => ({
@@ -41,5 +42,6 @@ describe('Home', () => {
     expect(screen.getAllByText('Oficina do João').length).toBeGreaterThan(0);
     expect(screen.getByText('joao@exemplo.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Usuários' })).toHaveAttribute('href', '/accounts');
   });
 });

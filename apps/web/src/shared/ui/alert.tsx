@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/cn';
 
-type AlertVariant = 'default' | 'destructive';
+type AlertVariant = 'default' | 'success' | 'destructive';
 
 type AlertProps = ComponentProps<'div'> & {
   variant?: AlertVariant;
@@ -9,6 +9,7 @@ type AlertProps = ComponentProps<'div'> & {
 
 const variantClasses: Record<AlertVariant, string> = {
   default: 'bg-card text-card-foreground',
+  success: 'border-emerald-600/30 bg-emerald-500/10 text-emerald-700',
   destructive: 'border-destructive/40 bg-destructive/10 text-destructive',
 };
 

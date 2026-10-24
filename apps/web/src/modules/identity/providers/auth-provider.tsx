@@ -43,6 +43,7 @@ type AuthContextValue = {
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterTenantInput) => Promise<void>;
   logout: () => Promise<void>;
+  updateAccount: (account: Account) => void;
   request: ApiClient['fetch'];
 };
 
@@ -164,6 +165,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [clearSession]);
 
+  const updateAccount = useCallback((account: Account) => {
+    setSession((current) => (current ? { ...current, account } : current));
+  }, []);
+
   const client = useMemo(
     () =>
       createApiClient({
@@ -184,9 +189,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      updateAccount,
       request: client.fetch,
     }),
-    [client.fetch, login, logout, register, session, status],
+    [client.fetch, login, logout, register, session, status, updateAccount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

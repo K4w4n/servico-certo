@@ -12,7 +12,11 @@ export const passwordSchema = z
   .min(10, 'A senha deve ter ao menos 10 caracteres')
   .max(128, 'A senha deve ter no máximo 128 caracteres');
 
-export const accountNameSchema = z.string().trim().min(1).max(120);
+export const accountNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Informe o nome')
+  .max(120, 'O nome deve ter no máximo 120 caracteres');
 
 export const accountStatusSchema = z.enum(['ACTIVE', 'BLOCKED']);
 

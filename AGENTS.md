@@ -430,20 +430,24 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 150 testes na API + 30 no web. Sempre manter lint, typecheck,
+- Estado atual: 150 testes na API + 52 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
 
 - Next.js App Router; login em `/login`, registro de tenant em `/register`,
-  recuperação de senha em `/forgot-password` e `/reset-password`, e home
-  protegida em `/`.
+  recuperação de senha em `/forgot-password` e `/reset-password`, gestão de
+  usuários em `/accounts`, e home protegida em `/`.
 - Tailwind v4 + shadcn/ui configurado; primitivos locais em `shared/ui`
-  (`button`, `input`, `label`, `alert`).
+  (`button`, `input`, `label`, `alert`, `dialog`).
 - `apps/web/src/modules` espelha os contextos da API; auth fica em
-  `modules/identity` (`lib/auth-api.ts`, `providers/auth-provider.tsx`,
+  `modules/identity` (`lib/auth-api.ts`, `lib/accounts-api.ts`,
+  `providers/auth-provider.tsx`, `components/app-shell.tsx`,
   `components/login-form.tsx`, `components/register-form.tsx`,
-  `components/forgot-password-form.tsx`, `components/reset-password-flow.tsx`).
+  `components/forgot-password-form.tsx`, `components/reset-password-flow.tsx`,
+  `components/accounts-screen.tsx`, `components/accounts-table.tsx`,
+  `components/accounts-filters.tsx`, `components/account-form-dialog.tsx`,
+  `components/account-password-dialog.tsx`, `components/confirm-dialog.tsx`).
 - `AuthProvider` no `layout.tsx` mantém a sessão: access token apenas em
   memória, restauração via `/v1/auth/refresh` no carregamento, renovação
   proativa antes de expirar (com jitter e apenas com aba visível) e retry
@@ -457,7 +461,13 @@ DELETE /v1/service-orders/:id
   mensagem genérica (anti-enumeração); `/reset-password?token=...` valida o token
   ao carregar e envia a nova senha, tratando link expirado/uso único. O fluxo
   não autentica automaticamente.
-- Ainda faltam: contas, clientes, produtos, serviços e ordens de serviço.
+- Gestão de usuários: `/accounts` lista as contas do tenant com paginação e
+  filtros por nome/e-mail, criação, edição, troca de senha e bloqueio/
+  desbloqueio. A própria conta não pode ser bloqueada; editar o próprio nome ou
+  e-mail sincroniza o cabeçalho via `updateAccount` do `AuthProvider`. Trocar a
+  própria senha derruba os refresh tokens, mas mantém o access token atual até
+  expirar.
+- Ainda faltam: clientes, produtos, serviços e ordens de serviço.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
 
