@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type RGB } from 'pdf-lib';
 import type {
   ServiceOrderReceiptPdf,
   ServiceOrderReceiptPdfData,
@@ -13,11 +13,25 @@ const BOTTOM_MARGIN = 64;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const LABEL_WIDTH = 108;
 
+const TABLE_COLUMNS = {
+  description: MARGIN + 6,
+  descriptionWidth: 246,
+  quantityRight: MARGIN + 282,
+  unitPriceRight: MARGIN + 378,
+  totalRight: PAGE_WIDTH - MARGIN,
+} as const;
+
+const TABLE_ROW_PADDING = 8;
+const TABLE_LINE_HEIGHT = 11;
+const TABLE_TEXT_ASCENT = 6.5;
+const TABLE_TEXT_DESCENT = 1.9;
+
 const COLORS = {
   text: rgb(0.12, 0.14, 0.17),
   muted: rgb(0.42, 0.45, 0.5),
   line: rgb(0.85, 0.86, 0.88),
   soft: rgb(0.96, 0.97, 0.98),
+  zebra: rgb(0.975, 0.978, 0.982),
   header: rgb(0.11, 0.16, 0.22),
   white: rgb(1, 1, 1),
 } as const;
@@ -238,52 +252,51 @@ class ReceiptWriter {
   drawItems(order: ServiceOrderView): void {
     this.drawSection('Itens');
 
-    const columns = {
-      description: MARGIN,
-      descriptionWidth: 286,
-      quantity: 344,
-      unitPrice: 400,
-      total: PAGE_WIDTH - MARGIN,
-    };
+    const columns = TABLE_COLUMNS;
 
     const drawTableHeader = () => {
-      this.ensureSpace(24);
+      this.ensureSpace(26);
+      const headerTextY = this.y + 2.8;
+
       this.page.drawRectangle({
         x: MARGIN,
-        y: this.y - 5,
+        y: this.y - 6,
         width: CONTENT_WIDTH,
-        height: 20,
+        height: 22,
         color: COLORS.soft,
       });
       this.page.drawText('Descrição', {
-        x: columns.description + 6,
-        y: this.y,
+        x: columns.description,
+        y: headerTextY,
         size: 8.5,
         font: this.fonts.bold,
         color: COLORS.muted,
       });
-      this.page.drawText('Qtd.', {
-        x: columns.quantity,
-        y: this.y,
-        size: 8.5,
-        font: this.fonts.bold,
-        color: COLORS.muted,
-      });
-      this.page.drawText('Unitário', {
-        x: columns.unitPrice,
-        y: this.y,
-        size: 8.5,
-        font: this.fonts.bold,
-        color: COLORS.muted,
-      });
-      this.page.drawText('Total', {
-        x: columns.total - this.fonts.bold.widthOfTextAtSize('Total', 8.5),
-        y: this.y,
-        size: 8.5,
-        font: this.fonts.bold,
-        color: COLORS.muted,
-      });
-      this.y -= 19;
+      this.drawRightText(
+        'Qtd.',
+        columns.quantityRight,
+        headerTextY,
+        8.5,
+        this.fonts.bold,
+        COLORS.muted,
+      );
+      this.drawRightText(
+        'Unitário',
+        columns.unitPriceRight,
+        headerTextY,
+        8.5,
+        this.fonts.bold,
+        COLORS.muted,
+      );
+      this.drawRightText(
+        'Total',
+        columns.totalRight,
+        headerTextY,
+        8.5,
+        this.fonts.bold,
+        COLORS.muted,
+      );
+      this.y -= 24;
     };
 
     drawTableHeader();
@@ -303,81 +316,119 @@ class ReceiptWriter {
       })),
     ];
 
-    for (const item of items) {
+    items.forEach((item, index) => {
       const descriptionLines = wrapText(item.name, this.fonts.regular, 9, columns.descriptionWidth);
-      const rowHeight = Math.max(24, descriptionLines.length * 11 + 10);
+      const rowHeight = Math.max(22, (descriptionLines.length - 1) * TABLE_LINE_HEIGHT + 10);
 
       if (!this.hasSpace(rowHeight)) {
         this.addPage();
         drawTableHeader();
       }
 
-      let descriptionY = this.y;
+      const rowTop = this.y + TABLE_ROW_PADDING;
+      const textBlockHeight =
+        (descriptionLines.length - 1) * TABLE_LINE_HEIGHT + TABLE_TEXT_ASCENT + TABLE_TEXT_DESCENT;
+      const textTop = rowTop - (rowHeight - textBlockHeight) / 2;
+      const textBaseline = textTop - TABLE_TEXT_ASCENT;
+      const singleLineBlockHeight = TABLE_TEXT_ASCENT + TABLE_TEXT_DESCENT;
+      const numericTop = rowTop - (rowHeight - singleLineBlockHeight) / 2;
+      const numericBaseline = numericTop - TABLE_TEXT_ASCENT;
+
+      if (index % 2 === 1) {
+        this.page.drawRectangle({
+          x: MARGIN,
+          y: rowTop - rowHeight,
+          width: CONTENT_WIDTH,
+          height: rowHeight,
+          color: COLORS.zebra,
+        });
+      }
+
+      let descriptionY = textBaseline;
 
       for (const line of descriptionLines) {
         this.page.drawText(line, {
-          x: columns.description + 6,
+          x: columns.description,
           y: descriptionY,
           size: 9,
           font: this.fonts.regular,
           color: COLORS.text,
         });
-        descriptionY -= 11;
+        descriptionY -= TABLE_LINE_HEIGHT;
       }
 
-      this.page.drawText(item.quantity, {
-        x: columns.quantity,
-        y: this.y,
-        size: 9,
-        font: this.fonts.regular,
-        color: COLORS.text,
-      });
-      const unitPrice = formatCurrency(item.unitPriceCents);
-      this.page.drawText(unitPrice, {
-        x: columns.unitPrice,
-        y: this.y,
-        size: 9,
-        font: this.fonts.regular,
-        color: COLORS.text,
-      });
-      const total = formatCurrency(item.totalCents);
-      this.page.drawText(total, {
-        x: columns.total - this.fonts.regular.widthOfTextAtSize(total, 9),
-        y: this.y,
-        size: 9,
-        font: this.fonts.regular,
-        color: COLORS.text,
-      });
+      this.drawRightText(
+        item.quantity,
+        columns.quantityRight,
+        numericBaseline,
+        9,
+        this.fonts.regular,
+      );
+      this.drawRightText(
+        formatCurrency(item.unitPriceCents),
+        columns.unitPriceRight,
+        numericBaseline,
+        9,
+        this.fonts.regular,
+      );
+      this.drawRightText(
+        formatCurrency(item.totalCents),
+        columns.totalRight,
+        numericBaseline,
+        9,
+        this.fonts.regular,
+      );
 
-      this.y -= rowHeight - 6;
+      this.y -= rowHeight - 8;
       this.page.drawLine({
         start: { x: MARGIN, y: this.y },
         end: { x: PAGE_WIDTH - MARGIN, y: this.y },
-        thickness: 0.5,
+        thickness: 0.4,
         color: COLORS.line,
       });
-      this.y -= 6;
-    }
+      this.y -= 8;
+    });
   }
 
   drawTotal(totalCents: number): void {
-    this.ensureSpace(38);
-    this.page.drawText('Total', {
-      x: PAGE_WIDTH - MARGIN - 150,
-      y: this.y,
-      size: 10,
-      font: this.fonts.bold,
-      color: COLORS.muted,
-    });
+    this.ensureSpace(46);
     const total = formatCurrency(totalCents);
-    this.page.drawText(total, {
-      x: PAGE_WIDTH - MARGIN - this.fonts.bold.widthOfTextAtSize(total, 13),
-      y: this.y - 2,
-      size: 13,
-      font: this.fonts.bold,
-      color: COLORS.text,
+
+    this.y -= 7;
+    this.drawRightText(
+      'Total',
+      TABLE_COLUMNS.unitPriceRight,
+      this.y,
+      10,
+      this.fonts.bold,
+      COLORS.muted,
+    );
+    this.drawRightText(
+      total,
+      TABLE_COLUMNS.totalRight,
+      this.y - 2,
+      13,
+      this.fonts.bold,
+      COLORS.text,
+    );
+    this.y -= 33;
+  }
+
+  private drawRightText(
+    text: string,
+    rightX: number,
+    y: number,
+    size: number,
+    font: PDFFont,
+    color: RGB = COLORS.text,
+  ): void {
+    this.page.drawText(text, {
+      x: rightX - font.widthOfTextAtSize(text, size),
+      y,
+      size,
+      font,
+      color,
     });
-    this.y -= 30;
   }
 
   drawParagraph(text: string): void {
