@@ -46,6 +46,12 @@ export type ApiRequestOptions = RequestInit & {
 
 export type ApiClient = {
   fetch: <T>(path: string, options?: ApiRequestOptions) => Promise<T>;
+  download: (path: string, options?: ApiRequestOptions) => Promise<DownloadedFile>;
+};
+
+export type DownloadedFile = {
+  blob: Blob;
+  filename: string | null;
 };
 
 export type ApiClientAuth = {
@@ -85,11 +91,11 @@ async function send(path: string, init: RequestInit): Promise<Response> {
  * token é renovado uma única vez antes de repetir a requisição.
  */
 export function createApiClient(auth: ApiClientAuth = {}): ApiClient {
-  async function request<T>(
+  async function requestResponse(
     path: string,
     options: ApiRequestOptions = {},
     canRetry = true,
-  ): Promise<T> {
+  ): Promise<Response> {
     const { auth: useAuth = Boolean(auth.getAccessToken), ...init } = options;
     const token = useAuth ? auth.getAccessToken?.() : null;
     const headers = new Headers(init.headers);
@@ -112,7 +118,7 @@ export function createApiClient(auth: ApiClientAuth = {}): ApiClient {
       const renewedToken = await auth.refresh().catch(() => null);
 
       if (renewedToken) {
-        return request<T>(path, options, false);
+        return requestResponse(path, options, false);
       }
     }
 
@@ -120,10 +126,45 @@ export function createApiClient(auth: ApiClientAuth = {}): ApiClient {
       throw await ApiError.fromResponse(response);
     }
 
+    return response;
+  }
+
+  async function request<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+    const response = await requestResponse(path, options);
+
     return (await readBody<T>(response)) as T;
   }
 
-  return { fetch: request };
+  async function download(path: string, options: ApiRequestOptions = {}): Promise<DownloadedFile> {
+    const response = await requestResponse(path, options);
+
+    return {
+      blob: await response.blob(),
+      filename: parseFilename(response.headers.get('Content-Disposition')),
+    };
+  }
+
+  return { fetch: request, download };
+}
+
+function parseFilename(contentDisposition: string | null): string | null {
+  if (!contentDisposition) {
+    return null;
+  }
+
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+
+  if (encoded?.[1]) {
+    try {
+      return decodeURIComponent(encoded[1]);
+    } catch {
+      return encoded[1];
+    }
+  }
+
+  const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(contentDisposition);
+
+  return plain?.[1]?.trim() ?? null;
 }
 
 /**

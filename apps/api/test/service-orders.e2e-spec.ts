@@ -2,6 +2,7 @@ import { type INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PUBLIC_ID_PREFIXES } from '@servico-certo/contracts';
 import type { Knex } from 'knex';
+import { PDFDocument } from 'pdf-lib';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
@@ -13,6 +14,9 @@ import { runMigrations } from './helpers/migrate.js';
 type RegisteredTenant = {
   accessToken: string;
   domain: string;
+  accountId: string;
+  accountName: string;
+  accountEmail: string;
 };
 
 type CustomerResponse = {
@@ -57,6 +61,11 @@ type ServiceOrderResponse = {
   totalCents: number;
   createdAt: string;
   updatedAt: string;
+  createdBy: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
 };
 
 const PASSWORD = 'senha-super-segura';
@@ -155,6 +164,9 @@ describe('Service orders (e2e)', () => {
     return {
       accessToken: response.body.accessToken as string,
       domain,
+      accountId: response.body.account.id as string,
+      accountName: response.body.account.name as string,
+      accountEmail: response.body.account.email as string,
     };
   }
 
@@ -214,6 +226,19 @@ describe('Service orders (e2e)', () => {
     return request(server)
       .get(`/v1/service-orders/${orderId}`)
       .set('Authorization', `Bearer ${tenant.accessToken}`);
+  }
+
+  function getReceipt(tenant: RegisteredTenant, orderId: string) {
+    return request(server)
+      .get(`/v1/service-orders/${orderId}/receipt`)
+      .set('Authorization', `Bearer ${tenant.accessToken}`)
+      .buffer(true)
+      .parse((response, callback) => {
+        const chunks: Buffer[] = [];
+
+        response.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+        response.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
   }
 
   function updateOrder(tenant: RegisteredTenant, orderId: string, body: Record<string, unknown>) {
@@ -300,6 +325,11 @@ describe('Service orders (e2e)', () => {
       },
     ]);
     expect(body.totalCents).toBe(23000);
+    expect(body.createdBy).toEqual({
+      id: tenantA.accountId,
+      name: tenantA.accountName,
+      email: tenantA.accountEmail,
+    });
 
     const catalogProduct = await request(server)
       .get(`/v1/products/${productCreate.id}`)
@@ -537,6 +567,29 @@ describe('Service orders (e2e)', () => {
 
     const invalidId = await getOrder(tenantA, 'ord_invalid').expect(400);
     expect(invalidId.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('gera comprovante em PDF com os dados da ordem de serviço', async () => {
+    const order = await createBasicOrder(tenantA, customerGet, productCreate, serviceCreate);
+
+    const response = await getReceipt(tenantA, order.id).expect(200);
+
+    expect(response.headers['content-type']).toContain('application/pdf');
+    expect(response.headers['content-disposition']).toContain(
+      `attachment; filename="comprovante-ordem-${order.protocol}.pdf"`,
+    );
+    expect(Buffer.isBuffer(response.body)).toBe(true);
+
+    const buffer = response.body as Buffer;
+
+    expect(buffer.subarray(0, 5).toString()).toBe('%PDF-');
+
+    const document = await PDFDocument.load(buffer);
+
+    expect(document.getTitle()).toContain(`#${order.protocol}`);
+    expect(document.getAuthor()).toBe(tenantA.domain);
+
+    await getReceipt(tenantB, order.id).expect(404);
   });
 
   it('atualiza cliente, observação, produtos e serviços', async () => {

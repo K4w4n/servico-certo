@@ -116,4 +116,28 @@ describe('api-client', () => {
       code: 'NETWORK_ERROR',
     });
   });
+
+  it('baixa arquivos binários e extrai o nome do Content-Disposition', async () => {
+    const blob = new Blob(['%PDF-1.7'], { type: 'application/pdf' });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({
+        'Content-Disposition': 'attachment; filename="comprovante-ordem-100001.pdf"',
+      }),
+      blob: async () => blob,
+    } as Response);
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const client = createApiClient();
+    const file = await client.download('/service-orders/ord_123/receipt');
+
+    expect(file.blob).toBe(blob);
+    expect(file.filename).toBe('comprovante-ordem-100001.pdf');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:3001/v1/service-orders/ord_123/receipt',
+      expect.objectContaining({ credentials: 'include' }),
+    );
+  });
 });

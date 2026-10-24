@@ -22,6 +22,13 @@ export function toServiceOrderResponse(order: ServiceOrderView): ServiceOrderRes
       documentType: order.customer.documentType,
       phoneNumber: order.customer.phoneNumber,
     },
+    createdBy: order.createdBy
+      ? {
+          id: encodePublicId(PUBLIC_ID_PREFIXES.account, order.createdBy.id),
+          name: order.createdBy.name,
+          email: order.createdBy.email,
+        }
+      : null,
     products: order.products.map((item) => ({
       productId: encodePublicId(PUBLIC_ID_PREFIXES.product, item.productId),
       name: item.name,

@@ -45,6 +45,7 @@ type AuthContextValue = {
   logout: () => Promise<void>;
   updateAccount: (account: Account) => void;
   request: ApiClient['fetch'];
+  download: ApiClient['download'];
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -191,8 +192,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       updateAccount,
       request: client.fetch,
+      download: client.download,
     }),
-    [client.fetch, login, logout, register, session, status, updateAccount],
+    [client.download, client.fetch, login, logout, register, session, status, updateAccount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

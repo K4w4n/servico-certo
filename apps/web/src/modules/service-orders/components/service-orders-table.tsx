@@ -16,6 +16,7 @@ type ServiceOrdersTableProps = {
   orders: ServiceOrder[];
   isLoading: boolean;
   hasFilters: boolean;
+  onOpen: (order: ServiceOrder) => void;
   onEdit: (order: ServiceOrder) => void;
   onDelete: (order: ServiceOrder) => void;
   onClearFilters: () => void;
@@ -25,6 +26,7 @@ export function ServiceOrdersTable({
   orders,
   isLoading,
   hasFilters,
+  onOpen,
   onEdit,
   onDelete,
   onClearFilters,
@@ -120,6 +122,9 @@ export function ServiceOrdersTable({
 
               <td className="px-4 py-3 align-top">
                 <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={() => onOpen(order)}>
+                    Abrir
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => onEdit(order)}>
                     Editar
                   </Button>

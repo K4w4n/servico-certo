@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { accountIdSchema } from '../shared/public-id.js';
 import { customerSchema } from '../customers/customer.schema.js';
 import { productPriceCentsSchema } from '../products/product.schema.js';
 import { servicePriceCentsSchema } from '../services/service.schema.js';
@@ -45,11 +46,18 @@ export const serviceOrderServiceItemSchema = z.object({
   priceCents: servicePriceCentsSchema,
 });
 
+export const serviceOrderCreatorSchema = z.object({
+  id: accountIdSchema,
+  name: z.string().min(1).max(120),
+  email: z.string(),
+});
+
 export const serviceOrderSchema = z.object({
   id: serviceOrderIdSchema,
   protocol: serviceOrderProtocolSchema,
   note: z.string().nullable(),
   customer: customerSchema,
+  createdBy: serviceOrderCreatorSchema.nullable(),
   products: z.array(serviceOrderProductItemSchema),
   services: z.array(serviceOrderServiceItemSchema),
   totalCents: z.number().int().min(0),
@@ -183,6 +191,7 @@ export const listServiceOrdersResponseSchema = z.object({
 });
 
 export type ServiceOrder = z.infer<typeof serviceOrderSchema>;
+export type ServiceOrderCreator = z.infer<typeof serviceOrderCreatorSchema>;
 export type ServiceOrderProductItem = z.infer<typeof serviceOrderProductItemSchema>;
 export type ServiceOrderServiceItem = z.infer<typeof serviceOrderServiceItemSchema>;
 export type CreateServiceOrderInput = z.infer<typeof createServiceOrderSchema>;

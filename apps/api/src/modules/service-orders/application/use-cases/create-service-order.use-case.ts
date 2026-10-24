@@ -43,6 +43,11 @@ export type CreateServiceOrderServiceCommand = {
 export type CreateServiceOrderCommand = {
   tenantId: string;
   customerId: string;
+  createdBy: {
+    accountId: string;
+    name: string;
+    email: string;
+  };
   note?: string | null;
   products: CreateServiceOrderProductCommand[];
   services: CreateServiceOrderServiceCommand[];
@@ -114,6 +119,7 @@ export class CreateServiceOrderUseCase {
         tenantId: command.tenantId,
         protocol,
         customerId: command.customerId,
+        createdBy: command.createdBy,
         note: command.note ?? null,
         products,
         services,

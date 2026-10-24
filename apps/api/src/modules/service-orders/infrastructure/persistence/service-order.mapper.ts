@@ -12,6 +12,9 @@ export type ServiceOrderRow = {
   protocol: string;
   note: string | null;
   customer_id: string;
+  created_by_account_id: string | null;
+  created_by_name: string | null;
+  created_by_email: string | null;
   created_at: Date | string;
   updated_at: Date | string;
   deleted_at: Date | string | null;
@@ -46,6 +49,14 @@ export const serviceOrderMapper = {
       protocol: Protocol.restore(order.protocol),
       note: order.note,
       customerId: order.customer_id,
+      createdBy:
+        order.created_by_account_id && order.created_by_name && order.created_by_email
+          ? {
+              accountId: order.created_by_account_id,
+              name: order.created_by_name,
+              email: order.created_by_email,
+            }
+          : null,
       products: products.map(toProductItem),
       services: services.map(toServiceItem),
       createdAt: toDate(order.created_at),
@@ -61,6 +72,9 @@ export const serviceOrderMapper = {
       protocol: order.protocol.value,
       note: order.note,
       customer_id: order.customerId,
+      created_by_account_id: order.createdBy?.accountId ?? null,
+      created_by_name: order.createdBy?.name ?? null,
+      created_by_email: order.createdBy?.email ?? null,
       created_at: order.createdAt,
       updated_at: order.updatedAt,
       deleted_at: order.deletedAt,

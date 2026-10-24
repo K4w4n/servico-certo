@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/modules/identity/components/confirm-dialog';
 import { useAuth } from '@/modules/identity/providers/auth-provider';
 import { Alert } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
+import { ServiceOrderDetailsDialog } from './service-order-details-dialog';
 import { ServiceOrderFormDialog } from './service-order-form-dialog';
 import { ServiceOrdersFilters, type ServiceOrderFiltersValues } from './service-orders-filters';
 import { ServiceOrdersTable } from './service-orders-table';
@@ -34,6 +35,7 @@ const EMPTY_FILTERS: ServiceOrderFiltersValues = {
 
 type DialogState =
   | { type: 'create' }
+  | { type: 'details'; order: ServiceOrder }
   | { type: 'edit'; order: ServiceOrder }
   | { type: 'delete'; order: ServiceOrder }
   | null;
@@ -44,7 +46,7 @@ type Feedback = {
 };
 
 export function ServiceOrdersScreen() {
-  const { request } = useAuth();
+  const { request, download, tenant } = useAuth();
   const [draftFilters, setDraftFilters] = useState<ServiceOrderFiltersValues>(EMPTY_FILTERS);
   const [filters, setFilters] = useState<ServiceOrderFiltersValues>(EMPTY_FILTERS);
   const [page, setPage] = useState(0);
@@ -275,6 +277,7 @@ export function ServiceOrdersScreen() {
         orders={orders}
         isLoading={isLoading}
         hasFilters={hasFilters}
+        onOpen={(order) => setDialog({ type: 'details', order })}
         onEdit={(order) => setDialog({ type: 'edit', order })}
         onDelete={openDeleteDialog}
         onClearFilters={clearFilters}
@@ -322,6 +325,15 @@ export function ServiceOrdersScreen() {
           onRetryReferences={reloadReferences}
           onClose={() => setDialog(null)}
           onSaved={handleSaved}
+        />
+      ) : null}
+
+      {dialog?.type === 'details' ? (
+        <ServiceOrderDetailsDialog
+          order={dialog.order}
+          tenantName={tenant?.name ?? 'Serviço Certo'}
+          download={download}
+          onClose={() => setDialog(null)}
         />
       ) : null}
 

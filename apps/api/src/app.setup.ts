@@ -18,6 +18,7 @@ export function configureApp(app: INestApplication, options: { swagger?: boolean
     origin:
       process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ?? 'http://localhost:3000',
     credentials: true,
+    exposedHeaders: ['Content-Disposition'],
   });
 
   if (options.swagger && process.env.NODE_ENV !== 'production') {

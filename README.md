@@ -103,12 +103,12 @@ E rode as migrations:
 pnpm db:migrate
 ```
 
-As migrations `001` a `009` criam as tabelas do identity, de clientes, de
+As migrations `001` a `010` criam as tabelas do identity, de clientes, de
 produtos, de serviços e de ordens de serviço (`tenants`, `accounts`,
 `refresh_tokens`, `password_reset_tokens`, `customers`, `products`, `services`,
 `service_orders`, `service_order_products`, `service_order_services` e
-`service_order_counters`), além do status de accounts, e já rodam tanto no
-SQLite quanto no PostgreSQL.
+`service_order_counters`), além do status de accounts e do snapshot do criador
+das ordens de serviço, e já rodam tanto no SQLite quanto no PostgreSQL.
 
 O `docker compose` também sobe o **Mailpit**:
 
@@ -503,13 +503,14 @@ preenchido.
 CRUD de ordens de serviço, multi-tenant, com protocolo numérico sequencial,
 preços personalizados por item, snapshots de nome e soft delete.
 
-| Método   | Rota                     | Descrição                                        |
-| -------- | ------------------------ | ------------------------------------------------ |
-| `POST`   | `/v1/service-orders`     | Cria uma ordem de serviço                        |
-| `GET`    | `/v1/service-orders`     | Lista com paginação e filtros                    |
-| `GET`    | `/v1/service-orders/:id` | Busca uma ordem com cliente, produtos e serviços |
-| `PATCH`  | `/v1/service-orders/:id` | Atualiza a ordem                                 |
-| `DELETE` | `/v1/service-orders/:id` | Exclui logicamente a ordem                       |
+| Método   | Rota                             | Descrição                                        |
+| -------- | -------------------------------- | ------------------------------------------------ |
+| `POST`   | `/v1/service-orders`             | Cria uma ordem de serviço                        |
+| `GET`    | `/v1/service-orders`             | Lista com paginação e filtros                    |
+| `GET`    | `/v1/service-orders/:id`         | Busca uma ordem com cliente, produtos e serviços |
+| `GET`    | `/v1/service-orders/:id/receipt` | Gera o comprovante da ordem em PDF               |
+| `PATCH`  | `/v1/service-orders/:id`         | Atualiza a ordem                                 |
+| `DELETE` | `/v1/service-orders/:id`         | Exclui logicamente a ordem                       |
 
 Todas exigem `Authorization: Bearer <accessToken>`. Os IDs públicos usam o
 prefixo `ord_`.
@@ -539,6 +540,12 @@ prefixo `ord_`.
   apenas um dos arrays for enviado, o outro é mantido.
 - A exclusão é **soft delete** (`deleted_at`); a ordem some das consultas, mas
   os itens permanecem no banco.
+- O criador da ordem é registrado no momento da criação (nome e e-mail são
+  congelados na ordem). Ordens antigas podem ter `createdBy: null`.
+- `GET /v1/service-orders/:id/receipt` retorna `application/pdf` com o
+  comprovante da ordem: dados do tenant, número do protocolo, cliente, itens,
+  total, observação, criador da ordem, datas de criação e atualização, além de
+  quem gerou o PDF e o horário da geração.
 
 **Criar ordem de serviço**
 
@@ -581,6 +588,11 @@ Resposta `201`:
     "documentType": null,
     "phoneNumber": null
   },
+  "createdBy": {
+    "id": "acc_AaFXJKFudkiOtV8yn8ts-g",
+    "name": "João",
+    "email": "joao@exemplo.com"
+  },
   "products": [
     {
       "productId": "prd_AaFXJKFudkiOtV8yn8ts-g",
@@ -613,6 +625,13 @@ deve ser enviado. O protocolo não é editável.
 `DELETE /v1/service-orders/:id` retorna `204`. A ordem some da listagem e das
 buscas por ID, mas o registro e seus itens permanecem no banco com `deleted_at`
 preenchido.
+
+**Comprovante em PDF**
+
+`GET /v1/service-orders/:id/receipt` retorna o PDF com `Content-Disposition:
+attachment; filename="comprovante-ordem-100001.pdf"`. No frontend, a ação
+**Abrir** exibe os principais dados da ordem em um popup com o botão
+**Baixar comprovante PDF**.
 
 ## Scripts
 

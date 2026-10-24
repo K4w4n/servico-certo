@@ -42,6 +42,11 @@ const SERVICE_ORDER = {
   totalCents: 21180,
   createdAt: '2026-10-24T00:00:00.000Z',
   updatedAt: '2026-10-24T00:00:00.000Z',
+  createdBy: {
+    id: 'acc_AaFrLZYfcVevBwi2on-gZQ',
+    name: 'João',
+    email: 'joao@exemplo.com',
+  },
 };
 
 describe('service-orders-api', () => {

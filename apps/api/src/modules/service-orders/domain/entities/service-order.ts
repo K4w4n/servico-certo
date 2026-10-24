@@ -1,4 +1,5 @@
 import {
+  InvalidServiceOrderCreatorError,
   InvalidServiceOrderItemError,
   InvalidServiceOrderNoteError,
   ServiceOrderItemsRequiredError,
@@ -22,12 +23,19 @@ export type ServiceOrderServiceItem = {
   priceCents: number;
 };
 
+export type ServiceOrderCreator = {
+  accountId: string;
+  name: string;
+  email: string;
+};
+
 export type ServiceOrderProps = {
   id: string;
   tenantId: string;
   protocol: Protocol;
   note: string | null;
   customerId: string;
+  createdBy: ServiceOrderCreator | null;
   products: ServiceOrderProductItem[];
   services: ServiceOrderServiceItem[];
   createdAt: Date;
@@ -43,6 +51,7 @@ export class ServiceOrder {
     tenantId: string;
     protocol: Protocol;
     customerId: string;
+    createdBy: ServiceOrderCreator;
     note?: string | null;
     products: ServiceOrderProductItem[];
     services: ServiceOrderServiceItem[];
@@ -61,6 +70,7 @@ export class ServiceOrder {
       protocol: input.protocol,
       note: normalizeNote(input.note ?? null),
       customerId: input.customerId,
+      createdBy: normalizeCreator(input.createdBy),
       products,
       services,
       createdAt: input.now,
@@ -91,6 +101,10 @@ export class ServiceOrder {
 
   get customerId(): string {
     return this.props.customerId;
+  }
+
+  get createdBy(): ServiceOrderCreator | null {
+    return this.props.createdBy;
   }
 
   get products(): ServiceOrderProductItem[] {
@@ -155,6 +169,18 @@ export class ServiceOrder {
     this.props.deletedAt = now;
     this.props.updatedAt = now;
   }
+}
+
+function normalizeCreator(creator: ServiceOrderCreator): ServiceOrderCreator {
+  const accountId = creator.accountId.trim();
+  const name = creator.name.trim().replace(/\s+/g, ' ');
+  const email = creator.email.trim().toLowerCase();
+
+  if (accountId.length === 0 || name.length === 0 || email.length === 0) {
+    throw new InvalidServiceOrderCreatorError();
+  }
+
+  return { accountId, name, email };
 }
 
 function normalizeNote(raw: string | null): string | null {

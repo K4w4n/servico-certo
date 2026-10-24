@@ -3,12 +3,15 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   Inject,
   Param,
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,10 +19,12 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiProduces,
   ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
 import {
   PUBLIC_ID_PREFIXES,
   createServiceOrderSchema,
@@ -37,12 +42,15 @@ import {
 import { decodePublicId } from '../../../../shared/ids/public-id.js';
 import { CreateServiceOrderUseCase } from '../../application/use-cases/create-service-order.use-case.js';
 import { DeleteServiceOrderUseCase } from '../../application/use-cases/delete-service-order.use-case.js';
+import { GenerateServiceOrderReceiptUseCase } from '../../application/use-cases/generate-service-order-receipt.use-case.js';
 import { GetServiceOrderUseCase } from '../../application/use-cases/get-service-order.use-case.js';
 import { ListServiceOrdersUseCase } from '../../application/use-cases/list-service-orders.use-case.js';
 import { UpdateServiceOrderUseCase } from '../../application/use-cases/update-service-order.use-case.js';
+import { CurrentAccount } from '../../../identity/presentation/http/decorators/current-account.decorator.js';
 import { TenantId } from '../../../identity/presentation/http/decorators/tenant-id.decorator.js';
 import { JwtAuthGuard } from '../../../identity/presentation/http/guards/jwt-auth.guard.js';
 import { toOpenApiSchema } from '../../../identity/presentation/http/openapi.js';
+import type { AuthenticatedAccount } from '../../../identity/presentation/http/types/authenticated-request.js';
 import { ZodValidationPipe } from '../../../identity/presentation/http/zod-validation.pipe.js';
 import { toListServiceOrdersResponse, toServiceOrderResponse } from './service-orders.presenter.js';
 
@@ -67,6 +75,8 @@ export class ServiceOrdersController {
     private readonly deleteServiceOrder: DeleteServiceOrderUseCase,
     @Inject(ListServiceOrdersUseCase)
     private readonly listServiceOrders: ListServiceOrdersUseCase,
+    @Inject(GenerateServiceOrderReceiptUseCase)
+    private readonly generateServiceOrderReceipt: GenerateServiceOrderReceiptUseCase,
   ) {}
 
   @Post()
@@ -107,10 +117,16 @@ export class ServiceOrdersController {
   async create(
     @Body(new ZodValidationPipe(createServiceOrderSchema)) body: CreateServiceOrderInput,
     @TenantId() tenantId: string,
+    @CurrentAccount() account: AuthenticatedAccount,
   ): Promise<ServiceOrderResponse> {
     const order = await this.createServiceOrder.execute({
       tenantId,
       customerId: decodePublicId(PUBLIC_ID_PREFIXES.customer, body.customerId),
+      createdBy: {
+        accountId: account.id,
+        name: account.name,
+        email: account.email,
+      },
       ...(body.note !== undefined ? { note: body.note } : {}),
       products: (body.products ?? []).map((item) => ({
         productId: decodePublicId(PUBLIC_ID_PREFIXES.product, item.productId),
@@ -199,6 +215,49 @@ export class ServiceOrdersController {
       limit: query.limit,
       offset: query.offset,
     });
+  }
+
+  @Get(':id/receipt')
+  @Header('Content-Type', 'application/pdf')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({ summary: 'Gera o comprovante em PDF de uma ordem de serviço' })
+  @ApiParam({
+    name: 'id',
+    example: EXAMPLE_SERVICE_ORDER_ID,
+    description: 'ID público da ordem de serviço',
+  })
+  @ApiProduces('application/pdf')
+  @ApiResponse({
+    status: 200,
+    description: 'Comprovante em PDF',
+    content: {
+      'application/pdf': {
+        schema: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'ID inválido' })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
+  @ApiResponse({ status: 404, description: 'Ordem de serviço não encontrada' })
+  async receipt(
+    @Param('id', new ZodValidationPipe(serviceOrderIdSchema)) id: string,
+    @TenantId() tenantId: string,
+    @CurrentAccount() account: AuthenticatedAccount,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<StreamableFile> {
+    const receipt = await this.generateServiceOrderReceipt.execute({
+      tenantId,
+      serviceOrderId: decodePublicId(PUBLIC_ID_PREFIXES.serviceOrder, id),
+      generatedBy: {
+        name: account.name,
+        email: account.email,
+      },
+    });
+
+    response.setHeader('Content-Disposition', `attachment; filename="${receipt.filename}"`);
+    response.setHeader('Content-Length', receipt.buffer.length);
+
+    return new StreamableFile(Buffer.from(receipt.buffer));
   }
 
   @Get(':id')

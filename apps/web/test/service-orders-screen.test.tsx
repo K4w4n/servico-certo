@@ -63,11 +63,18 @@ const ALINHAMENTO: Service = {
   updatedAt: '2026-10-24T00:00:00.000Z',
 };
 
+const CREATED_BY = {
+  id: 'acc_AaFrLZYfcVevBwi2on-gZQ',
+  name: 'João',
+  email: 'joao@exemplo.com',
+};
+
 const ORDER_1: ServiceOrder = {
   id: 'ord_AaFrLZYfcVevBwi2on-gZQ',
   protocol: '100001',
   note: 'Troca de óleo e filtro',
   customer: ANA,
+  createdBy: CREATED_BY,
   products: [
     {
       productId: TINTA.id,
@@ -94,6 +101,7 @@ const ORDER_2: ServiceOrder = {
   protocol: '100002',
   note: null,
   customer: BRUNO,
+  createdBy: CREATED_BY,
   products: [
     {
       productId: SHAMPOO.id,
@@ -120,6 +128,7 @@ const ORDER_3: ServiceOrder = {
   protocol: '100003',
   note: null,
   customer: ANA,
+  createdBy: CREATED_BY,
   products: [],
   services: [
     {
@@ -139,6 +148,8 @@ const mocks = vi.hoisted(() => ({
   updateServiceOrder: vi.fn(),
   deleteServiceOrder: vi.fn(),
   loadServiceOrderReferences: vi.fn(),
+  downloadServiceOrderReceipt: vi.fn(),
+  download: vi.fn(),
   request: vi.fn(),
 }));
 
@@ -147,6 +158,10 @@ vi.mock('@/modules/service-orders/lib/service-orders-api', () => ({
   createServiceOrder: mocks.createServiceOrder,
   updateServiceOrder: mocks.updateServiceOrder,
   deleteServiceOrder: mocks.deleteServiceOrder,
+}));
+
+vi.mock('@/modules/service-orders/lib/service-order-receipt', () => ({
+  downloadServiceOrderReceipt: mocks.downloadServiceOrderReceipt,
 }));
 
 vi.mock('@/modules/service-orders/lib/service-order-references', () => ({
@@ -172,6 +187,7 @@ vi.mock('@/modules/identity/providers/auth-provider', () => ({
     logout: vi.fn(),
     updateAccount: vi.fn(),
     request: mocks.request,
+    download: mocks.download,
   }),
 }));
 
@@ -233,6 +249,8 @@ describe('ServiceOrdersScreen', () => {
     mocks.updateServiceOrder.mockReset();
     mocks.deleteServiceOrder.mockReset();
     mocks.loadServiceOrderReferences.mockReset();
+    mocks.downloadServiceOrderReceipt.mockReset();
+    mocks.download.mockReset();
     mocks.listServiceOrders.mockResolvedValue(pageOf([ORDER_1, ORDER_2, ORDER_3]));
     mocks.loadServiceOrderReferences.mockResolvedValue({
       customers: [ANA, BRUNO],
@@ -274,6 +292,51 @@ describe('ServiceOrdersScreen', () => {
 
     expect(input).toHaveValue('Bruno Lima');
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('abre os detalhes da ordem e baixa o comprovante em PDF', async () => {
+    mocks.downloadServiceOrderReceipt.mockResolvedValue(undefined);
+
+    render(<ServiceOrdersScreen />);
+    await screen.findByText('#100001');
+
+    fireEvent.click(getRow('100001').getByRole('button', { name: 'Abrir' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Ordem de serviço #100001' });
+
+    expect(within(dialog).getByText('Ana Souza')).toBeInTheDocument();
+    expect(within(dialog).getByText('João')).toBeInTheDocument();
+    expect(within(dialog).getByText('joao@exemplo.com')).toBeInTheDocument();
+    expect(within(dialog).getByText('Troca de óleo e filtro')).toBeInTheDocument();
+    expect(within(dialog).getByText(/211,80/)).toBeInTheDocument();
+    expect(within(dialog).getByText('2')).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante PDF' }));
+
+    await waitFor(() => {
+      expect(mocks.downloadServiceOrderReceipt).toHaveBeenCalledWith(
+        mocks.download,
+        ORDER_1.id,
+        'comprovante-ordem-100001.pdf',
+      );
+    });
+  });
+
+  it('mostra erro quando não consegue gerar o comprovante', async () => {
+    mocks.downloadServiceOrderReceipt.mockRejectedValue(new Error('falha'));
+
+    render(<ServiceOrdersScreen />);
+    await screen.findByText('#100001');
+
+    fireEvent.click(getRow('100001').getByRole('button', { name: 'Abrir' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Ordem de serviço #100001' });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante PDF' }));
+
+    expect(
+      await within(dialog).findByText('Não foi possível gerar o comprovante em PDF.'),
+    ).toBeInTheDocument();
   });
 
   it('aplica todos os filtros', async () => {

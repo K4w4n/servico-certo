@@ -182,8 +182,9 @@ Formato:
   - `account.tenantId === tid`;
   - status `ACTIVE` (bloqueada → `403 ACCOUNT_BLOCKED`).
 - Toda request protegida faz uma consulta de conta (custo aceitável).
-- `IdentityModule` exporta `JwtAuthGuard`, `TOKEN_ISSUER` e `ACCOUNT_REPOSITORY`
-  para outros módulos que usam o guard.
+- `IdentityModule` exporta `JwtAuthGuard`, `TOKEN_ISSUER`, `ACCOUNT_REPOSITORY` e
+  `TENANT_REPOSITORY` para outros módulos que usam o guard ou precisam de dados
+  do tenant.
 
 ### Rotas de auth
 
@@ -318,6 +319,7 @@ Rotas:
 POST   /v1/service-orders
 GET    /v1/service-orders?limit&offset&protocol&customerId&productId&serviceId
 GET    /v1/service-orders/:id
+GET    /v1/service-orders/:id/receipt
 PATCH  /v1/service-orders/:id
 DELETE /v1/service-orders/:id
 ```
@@ -349,17 +351,25 @@ DELETE /v1/service-orders/:id
 - Listagem com paginação, `protocol` parcial, `customerId`, `productId` e
   `serviceId`; resposta `{ data, meta }`.
 - A resposta inclui cliente, ordem, produtos, serviços e `totalCents`.
+- O criador da ordem é congelado na criação (`created_by_account_id`,
+  `created_by_name`, `created_by_email`); a resposta expõe
+  `createdBy: { id, name, email } | null` (ordens legadas podem ter `null`).
+- `GET /v1/service-orders/:id/receipt` gera o comprovante em PDF com dados da
+  ordem, cliente, itens, tenant, criador da ordem, datas de criação/atualização,
+  quem gerou o PDF e o horário de geração. O PDF é gerado no backend com
+  `pdf-lib` e retornado como `application/pdf` com `Content-Disposition`.
 - Migration `009` cria `service_orders`, `service_order_products`,
-  `service_order_services` e `service_order_counters`.
+  `service_order_services` e `service_order_counters`; a migration `010` adiciona
+  o snapshot do criador à ordem.
 - IDs públicos usam o prefixo `ord_`.
 
 ## Banco de dados
 
 - Knex + SQLite (dev/testes) e PostgreSQL (prod).
-- Migrations em `apps/api/src/database/migrations` (001–009):
+- Migrations em `apps/api/src/database/migrations` (001–010):
   001 tenants, 002 accounts, 003 refresh_tokens, 004 password_reset_tokens,
   005 account status, 006 customers, 007 products, 008 services,
-  009 service orders.
+  009 service orders, 010 criador das ordens de serviço.
 - UUIDv7 gerado na aplicação (`uuid`), timestamps na aplicação (`Clock`).
 - Dinheiro deve ser armazenado em **centavos (integer/bigInteger)**.
 - SQLite: pool min/max 1 e `PRAGMA foreign_keys = ON` via `pool.afterCreate`.
@@ -368,6 +378,11 @@ DELETE /v1/service-orders/:id
   SQLite. Preferir `varchar`/`text` + `CHECK` ou validação na aplicação.
 - Migrations de produção usam `dist` e extensão `.js`; dev/testes usam `src` e
   `.ts`.
+- No SQLite, `alterTable` que adiciona foreign key ou remove coluna faz rebuild
+  da tabela. Nesses casos a migration deve declarar
+  `export const config = { transaction: false }` para o Knex conseguir desativar
+  `foreign_keys` durante o rebuild. Dentro de uma transação o SQLite ignora o
+  pragma, e o `DROP TABLE` pode apagar registros filhos por `ON DELETE CASCADE`.
 - Testes executam migrations diretamente via `test/helpers/migrate.ts` para não
   depender do loader de TS do Knex no Vitest.
 
@@ -430,7 +445,7 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 152 testes na API + 146 no web. Sempre manter lint, typecheck,
+- Estado atual: 158 testes na API + 151 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -466,8 +481,10 @@ DELETE /v1/service-orders/:id
   Ordens de serviço ficam em `modules/service-orders`
   (`lib/service-orders-api.ts`, `lib/service-order-errors.ts`,
   `lib/service-order-format.ts`, `lib/service-order-references.ts`,
-  `components/service-orders-screen.tsx`, `components/service-orders-table.tsx`,
-  `components/service-orders-filters.tsx`, `components/service-order-form-dialog.tsx`).
+  `lib/service-order-receipt.ts`, `components/service-orders-screen.tsx`,
+  `components/service-orders-table.tsx`, `components/service-orders-filters.tsx`,
+  `components/service-order-form-dialog.tsx`,
+  `components/service-order-details-dialog.tsx`).
   Preço (formatação/parse em reais e centavos) é compartilhado em
   `shared/lib/price.ts`; `shared/lib/load-all.ts` carrega todas as páginas dos
   catálogos usados pelos selects.
@@ -476,7 +493,8 @@ DELETE /v1/service-orders/:id
   proativa antes de expirar (com jitter e apenas com aba visível) e retry
   automático no `401`.
 - Client HTTP em `shared/lib/api-client.ts`: `ApiError` com o envelope da API,
-  tratamento de `204`, `credentials: include`, Bearer e refresh single-flight.
+  tratamento de `204`, `credentials: include`, Bearer, refresh single-flight e
+  `download` para respostas binárias com `Content-Disposition`.
 - O web usa `@servico-certo/contracts` para validar o formulário e as respostas
   de auth (`loginSchema`, `authResponseSchema`).
 - Proteção de rota é client-side, pois o token não é persistido em storage.
@@ -517,7 +535,9 @@ DELETE /v1/service-orders/:id
   com o valor do item, permite alterar o valor praticado e a quantidade
   (1–9999), exige ao menos um item e calcula o total. Na edição, o PATCH envia
   apenas cliente, observação ou a lista de itens que mudou. O protocolo é gerado
-  pela API e não é editável. Excluir é soft delete.
+  pela API e não é editável. A ação **Abrir** exibe um popup com os principais
+  dados da ordem e um botão para baixar o comprovante em PDF. Excluir é soft
+  delete.
 - Ainda faltam: estoque, faturamento/nota e papéis/permissões.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
@@ -541,8 +561,11 @@ DELETE /v1/service-orders/:id
   inteiro), soft delete e IDs `srv_`; `name` e `priceCents` obrigatórios e
   `description` opcional.
 - Ordens de serviço: protocolo numérico sequencial por tenant, itens com preços
-  praticados independentes do catálogo, snapshots de nome de produto/serviço,
-  soft delete e IDs `ord_`.
+  praticados independentes do catálogo, snapshots de nome de produto/serviço e
+  do criador, soft delete e IDs `ord_`.
+- Comprovante da ordem: PDF gerado no backend com `pdf-lib`, incluindo tenant,
+  ordem, cliente, itens, criador, datas e emissão; download autenticado via
+  `fetch` binário no web.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 

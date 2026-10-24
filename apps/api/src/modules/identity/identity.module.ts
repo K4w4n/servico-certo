@@ -88,6 +88,6 @@ import { PasswordResetController } from './presentation/http/password-reset.cont
     JwtAuthGuard,
     ThrottlerGuard,
   ],
-  exports: [JwtAuthGuard, TOKEN_ISSUER, ACCOUNT_REPOSITORY],
+  exports: [JwtAuthGuard, TOKEN_ISSUER, ACCOUNT_REPOSITORY, TENANT_REPOSITORY],
 })
 export class IdentityModule {}

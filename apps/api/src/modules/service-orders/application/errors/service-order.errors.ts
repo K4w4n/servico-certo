@@ -8,6 +8,14 @@ export class ServiceOrderNotFoundError extends AppError {
   }
 }
 
+export class ServiceOrderTenantNotFoundError extends AppError {
+  readonly code = 'TENANT_NOT_FOUND';
+
+  constructor(message = 'Tenant não encontrado') {
+    super(message);
+  }
+}
+
 export class ServiceOrderCustomerNotFoundError extends AppError {
   readonly code = 'CUSTOMER_NOT_FOUND';
 

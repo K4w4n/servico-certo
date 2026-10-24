@@ -55,6 +55,11 @@ const view: ServiceOrderView = {
     documentType: null,
     phoneNumber: null,
   },
+  createdBy: {
+    id: 'a1',
+    name: 'Conta',
+    email: 'conta@exemplo.com',
+  },
   products: [],
   services: [],
   totalCents: 0,
@@ -118,6 +123,11 @@ describe('Service order use cases — consultas em lote', () => {
     const result = await useCase.execute({
       tenantId: 't1',
       customerId: 'c1',
+      createdBy: {
+        accountId: 'a1',
+        name: 'Conta',
+        email: 'conta@exemplo.com',
+      },
       products: [
         { productId: 'p1', unitPriceCents: 1100, quantity: 2 },
         { productId: 'p2', unitPriceCents: 2100, quantity: 1 },
@@ -143,6 +153,11 @@ describe('Service order use cases — consultas em lote', () => {
       tenantId: 't1',
       protocol: Protocol.fromSequence(1),
       customerId: 'c1',
+      createdBy: {
+        accountId: 'a1',
+        name: 'Conta',
+        email: 'conta@exemplo.com',
+      },
       note: null,
       products: [
         {

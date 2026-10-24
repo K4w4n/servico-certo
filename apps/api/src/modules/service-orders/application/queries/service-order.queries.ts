@@ -23,11 +23,18 @@ export type ServiceOrderServiceView = {
   priceCents: number;
 };
 
+export type ServiceOrderCreatorView = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export type ServiceOrderView = {
   id: string;
   protocol: string;
   note: string | null;
   customer: ServiceOrderCustomerView;
+  createdBy: ServiceOrderCreatorView | null;
   products: ServiceOrderProductView[];
   services: ServiceOrderServiceView[];
   totalCents: number;

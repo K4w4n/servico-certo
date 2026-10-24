@@ -24,6 +24,14 @@ export class InvalidServiceOrderItemError extends AppError {
   }
 }
 
+export class InvalidServiceOrderCreatorError extends AppError {
+  readonly code = 'INVALID_SERVICE_ORDER_CREATOR';
+
+  constructor(message = 'Criador da ordem de serviço inválido') {
+    super(message);
+  }
+}
+
 export class ServiceOrderItemsRequiredError extends AppError {
   readonly code = 'SERVICE_ORDER_ITEMS_REQUIRED';
 

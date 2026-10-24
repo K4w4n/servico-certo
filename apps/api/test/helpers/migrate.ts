@@ -9,6 +9,7 @@ import * as createCustomers from '../../src/database/migrations/006_create_custo
 import * as createProducts from '../../src/database/migrations/007_create_products.js';
 import * as createServices from '../../src/database/migrations/008_create_services.js';
 import * as createServiceOrders from '../../src/database/migrations/009_create_service_orders.js';
+import * as addServiceOrderCreator from '../../src/database/migrations/010_add_service_order_creator.js';
 
 // Executa as migrations diretamente para não depender do loader de TS do Knex no Vitest.
 export async function runMigrations(db: Knex): Promise<void> {
@@ -28,4 +29,5 @@ export async function runMigrations(db: Knex): Promise<void> {
   await createProducts.up(db);
   await createServices.up(db);
   await createServiceOrders.up(db);
+  await addServiceOrderCreator.up(db);
 }

@@ -16,6 +16,11 @@ function createOrder(
     tenantId: '019b0000-0000-7000-8000-000000000002',
     protocol: Protocol.fromSequence(1),
     customerId: '019b0000-0000-7000-8000-000000000003',
+    createdBy: {
+      accountId: '019b0000-0000-7000-8000-000000000006',
+      name: 'Conta de Teste',
+      email: 'conta@exemplo.com',
+    },
     note: '  Observação  ',
     products: [
       {

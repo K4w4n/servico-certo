@@ -18,6 +18,9 @@ type ServiceOrderDetailsRow = {
   protocol: string;
   note: string | null;
   customer_id: string;
+  created_by_account_id: string | null;
+  created_by_name: string | null;
+  created_by_email: string | null;
   created_at: Date | string;
   updated_at: Date | string;
   customer_name: string;
@@ -32,6 +35,9 @@ const ORDER_COLUMNS = [
   'so.protocol',
   'so.note',
   'so.customer_id',
+  'so.created_by_account_id',
+  'so.created_by_name',
+  'so.created_by_email',
   'so.created_at',
   'so.updated_at',
   'c.name as customer_name',
@@ -199,6 +205,14 @@ function toView(
     protocol: row.protocol,
     note: row.note,
     customer,
+    createdBy:
+      row.created_by_account_id && row.created_by_name && row.created_by_email
+        ? {
+            id: row.created_by_account_id,
+            name: row.created_by_name,
+            email: row.created_by_email,
+          }
+        : null,
     products: productViews,
     services: serviceViews,
     totalCents:
