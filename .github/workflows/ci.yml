@@ -36,7 +36,7 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Unit tests
+      - name: Unit tests (API and web)
         run: pnpm test:unit
 
       - name: Build

@@ -423,8 +423,8 @@ DELETE /v1/service-orders/:id
 - `test/setup.ts` define env de teste (JWT_SECRET, TTLs, rate limit alto,
   `MAIL_TRANSPORT=console`, `COOKIE_DOMAIN=''`, `DATABASE_CLIENT` padrão e
   `TEST_DB_SCHEMA`).
-- CI: `quality` roda lint, typecheck, unitários e build; `api-e2e` roda a matriz
-  SQLite/PostgreSQL.
+- CI: `quality` roda lint, typecheck, unitários da API e do web e build;
+  `api-e2e` roda a matriz SQLite/PostgreSQL.
 - `test:e2e` não usa cache do Turbo (`cache: false`) porque depende do banco
   externo.
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
