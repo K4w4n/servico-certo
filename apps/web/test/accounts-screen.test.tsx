@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => ({
   createAccount: vi.fn(),
   updateAccount: vi.fn(),
   updateAccountStatus: vi.fn(),
+  requestPasswordReset: vi.fn(),
   request: vi.fn(),
   syncAccount: vi.fn(),
 }));
@@ -38,6 +39,10 @@ vi.mock('@/modules/identity/lib/accounts-api', () => ({
   createAccount: mocks.createAccount,
   updateAccount: mocks.updateAccount,
   updateAccountStatus: mocks.updateAccountStatus,
+}));
+
+vi.mock('@/modules/identity/lib/auth-api', () => ({
+  requestPasswordReset: mocks.requestPasswordReset,
 }));
 
 vi.mock('@/modules/identity/providers/auth-provider', () => ({
@@ -117,6 +122,7 @@ describe('AccountsScreen', () => {
     mocks.createAccount.mockReset();
     mocks.updateAccount.mockReset();
     mocks.updateAccountStatus.mockReset();
+    mocks.requestPasswordReset.mockReset();
     mocks.syncAccount.mockReset();
     mocks.listAccounts.mockResolvedValue(pageOf([CURRENT, MARIA, PEDRO]));
   });
@@ -392,6 +398,60 @@ describe('AccountsScreen', () => {
       await screen.findByText(
         /Senha alterada\. Sua sessão atual continuará ativa por alguns minutos/,
       ),
+    ).toBeInTheDocument();
+  });
+
+  it('envia o link de reset de senha para a conta', async () => {
+    mocks.requestPasswordReset.mockResolvedValueOnce(undefined);
+
+    render(<AccountsScreen />);
+    await screen.findByText('Maria Souza');
+
+    fireEvent.click(getRow('maria@exemplo.com').getByRole('button', { name: 'Enviar reset' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Enviar reset de senha?' });
+
+    expect(within(dialog).getByText(/maria@exemplo.com/)).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Enviar link' }));
+
+    await waitFor(() => {
+      expect(mocks.requestPasswordReset).toHaveBeenCalledWith({
+        tenantDomain: 'oficina-do-joao',
+        email: 'maria@exemplo.com',
+      });
+    });
+
+    expect(
+      await screen.findByText('Link de redefinição enviado para maria@exemplo.com.'),
+    ).toBeInTheDocument();
+  });
+
+  it('não envia reset para uma conta bloqueada', async () => {
+    render(<AccountsScreen />);
+    await screen.findByText('Pedro');
+
+    expect(
+      getRow('pedro@exemplo.com').getByRole('button', { name: 'Enviar reset' }),
+    ).toBeDisabled();
+  });
+
+  it('mostra erro de limite ao enviar reset', async () => {
+    mocks.requestPasswordReset.mockRejectedValueOnce(
+      new ApiError(429, 'HTTP_429', 'Muitas solicitações'),
+    );
+
+    render(<AccountsScreen />);
+    await screen.findByText('Maria Souza');
+
+    fireEvent.click(getRow('maria@exemplo.com').getByRole('button', { name: 'Enviar reset' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Enviar reset de senha?' });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Enviar link' }));
+
+    expect(
+      await screen.findByText('Muitas solicitações. Aguarde alguns instantes e tente novamente.'),
     ).toBeInTheDocument();
   });
 

@@ -6,6 +6,7 @@ import type { Account, ListAccountsResponse } from '@servico-certo/contracts';
 import { Alert } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
 import { useAuth } from '../providers/auth-provider';
+import { requestPasswordReset } from '../lib/auth-api';
 import { listAccounts, updateAccountStatus } from '../lib/accounts-api';
 import { getAccountErrorMessage } from '../lib/account-errors';
 import { AccountFormDialog } from './account-form-dialog';
@@ -20,6 +21,7 @@ type DialogState =
   | { type: 'create' }
   | { type: 'edit'; account: Account }
   | { type: 'password'; account: Account }
+  | { type: 'reset'; account: Account }
   | { type: 'status'; account: Account }
   | null;
 
@@ -34,7 +36,7 @@ const EMPTY_FILTERS: AccountFiltersValues = {
 };
 
 export function AccountsScreen() {
-  const { account: currentAccount, request, updateAccount: syncSessionAccount } = useAuth();
+  const { account: currentAccount, tenant, request, updateAccount: syncSessionAccount } = useAuth();
   const [draftFilters, setDraftFilters] = useState<AccountFiltersValues>(EMPTY_FILTERS);
   const [filters, setFilters] = useState<AccountFiltersValues>(EMPTY_FILTERS);
   const [page, setPage] = useState(0);
@@ -46,6 +48,8 @@ export function AccountsScreen() {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -80,11 +84,12 @@ export function AccountsScreen() {
     };
   }, [filters, page, reloadKey, request]);
 
-  if (!currentAccount) {
+  if (!currentAccount || !tenant) {
     return null;
   }
 
   const currentAccountId = currentAccount.id;
+  const tenantDomain = tenant.domain;
 
   const accounts = result?.data ?? [];
   const meta = result?.meta ?? { limit: PAGE_SIZE, offset: 0, total: 0 };
@@ -150,6 +155,38 @@ export function AccountsScreen() {
   function openStatusDialog(account: Account) {
     setStatusError(null);
     setDialog({ type: 'status', account });
+  }
+
+  function openResetDialog(account: Account) {
+    setResetError(null);
+    setDialog({ type: 'reset', account });
+  }
+
+  async function handleResetConfirm() {
+    if (dialog?.type !== 'reset' || isSendingReset) {
+      return;
+    }
+
+    const target = dialog.account;
+
+    setResetError(null);
+    setIsSendingReset(true);
+
+    try {
+      await requestPasswordReset({ tenantDomain, email: target.email });
+
+      setFeedback({
+        variant: 'success',
+        message: `Link de redefinição enviado para ${target.email}.`,
+      });
+      setDialog(null);
+    } catch (error) {
+      setResetError(
+        getAccountErrorMessage(error, 'Não foi possível enviar o link de redefinição.'),
+      );
+    } finally {
+      setIsSendingReset(false);
+    }
   }
 
   async function handleStatusConfirm() {
@@ -230,6 +267,7 @@ export function AccountsScreen() {
         hasFilters={hasFilters}
         onEdit={(account) => setDialog({ type: 'edit', account })}
         onChangePassword={(account) => setDialog({ type: 'password', account })}
+        onSendReset={openResetDialog}
         onToggleStatus={openStatusDialog}
         onClearFilters={clearFilters}
       />
@@ -292,6 +330,22 @@ export function AccountsScreen() {
           request={request}
           onClose={() => setDialog(null)}
           onChanged={handlePasswordChanged}
+        />
+      ) : null}
+
+      {dialog?.type === 'reset' ? (
+        <ConfirmDialog
+          title="Enviar reset de senha?"
+          description={`Enviaremos um link de redefinição para ${dialog.account.email}. O link é de uso único e tem prazo de validade.`}
+          confirmLabel="Enviar link"
+          isLoading={isSendingReset}
+          error={resetError}
+          onConfirm={handleResetConfirm}
+          onClose={() => {
+            if (!isSendingReset) {
+              setDialog(null);
+            }
+          }}
         />
       ) : null}
 

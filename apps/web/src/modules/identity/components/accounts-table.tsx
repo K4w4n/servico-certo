@@ -11,6 +11,7 @@ type AccountsTableProps = {
   hasFilters: boolean;
   onEdit: (account: Account) => void;
   onChangePassword: (account: Account) => void;
+  onSendReset: (account: Account) => void;
   onToggleStatus: (account: Account) => void;
   onClearFilters: () => void;
 };
@@ -37,6 +38,7 @@ export function AccountsTable({
   hasFilters,
   onEdit,
   onChangePassword,
+  onSendReset,
   onToggleStatus,
   onClearFilters,
 }: AccountsTableProps) {
@@ -117,6 +119,19 @@ export function AccountsTable({
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => onChangePassword(account)}>
                       Alterar senha
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onSendReset(account)}
+                      disabled={!isActive}
+                      title={
+                        isActive
+                          ? 'Enviar link de redefinição de senha por e-mail'
+                          : 'Desbloqueie a conta antes de enviar o reset'
+                      }
+                    >
+                      Enviar reset
                     </Button>
                     <Button
                       variant={isActive ? 'destructive' : 'secondary'}

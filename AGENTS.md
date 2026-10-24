@@ -430,7 +430,7 @@ DELETE /v1/service-orders/:id
 - Mailer nos testes: `FakeMailer` via `overrideProvider(MAILER)`.
 - Documentos de teste: gerar CPF/CNPJ válidos no próprio teste; não usar dados
   reais.
-- Estado atual: 150 testes na API + 52 no web. Sempre manter lint, typecheck,
+- Estado atual: 150 testes na API + 55 no web. Sempre manter lint, typecheck,
   test e build verdes.
 
 ## Frontend
@@ -462,11 +462,12 @@ DELETE /v1/service-orders/:id
   ao carregar e envia a nova senha, tratando link expirado/uso único. O fluxo
   não autentica automaticamente.
 - Gestão de usuários: `/accounts` lista as contas do tenant com paginação e
-  filtros por nome/e-mail, criação, edição, troca de senha e bloqueio/
-  desbloqueio. A própria conta não pode ser bloqueada; editar o próprio nome ou
-  e-mail sincroniza o cabeçalho via `updateAccount` do `AuthProvider`. Trocar a
-  própria senha derruba os refresh tokens, mas mantém o access token atual até
-  expirar.
+  filtros por nome/e-mail, criação, edição, troca de senha, envio de reset de
+  senha por e-mail e bloqueio/desbloqueio. A própria conta não pode ser
+  bloqueada; contas bloqueadas não recebem reset (o botão fica desabilitado).
+  Editar o próprio nome ou e-mail sincroniza o cabeçalho via `updateAccount` do
+  `AuthProvider`. Trocar a própria senha derruba os refresh tokens, mas mantém o
+  access token atual até expirar.
 - Ainda faltam: clientes, produtos, serviços e ordens de serviço.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
