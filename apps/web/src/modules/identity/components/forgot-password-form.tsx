@@ -1,13 +1,16 @@
 'use client';
 
 import { requestPasswordResetSchema } from '@servico-certo/contracts';
+import { Building2, Loader2, Mail, MailCheck } from 'lucide-react';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError } from '@/shared/lib/api-client';
+import { cn } from '@/shared/lib/cn';
 import { Alert } from '@/shared/ui/alert';
-import { Button } from '@/shared/ui/button';
+import { Button, buttonVariants } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { requestPasswordReset } from '../lib/auth-api';
+import { AUTH_INPUT_CLASS, AUTH_LABEL_CLASS } from './auth-form-styles';
 
 const FIELDS = ['tenantDomain', 'email'] as const;
 
@@ -115,21 +118,28 @@ export function ForgotPasswordForm() {
 
   if (submitted) {
     return (
-      <div className="flex flex-col gap-4 text-center">
+      <div className="flex flex-col gap-5 text-center">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-brand/25 bg-brand/10 text-brand">
+          <MailCheck className="size-6" strokeWidth={1.6} />
+        </span>
+
         <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">Verifique seu e-mail</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-xl font-semibold tracking-tight text-white">Verifique seu e-mail</h2>
+          <p className="text-sm leading-relaxed text-fog/70">
             Se os dados estiverem corretos, enviaremos um link de redefinição para o e-mail
             informado. O link tem prazo de validade e uso único.
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm leading-relaxed text-fog/70">
             Não encontrou? Confira a caixa de spam ou solicite novamente em alguns minutos.
           </p>
         </div>
 
         <a
           href="/login"
-          className="text-sm font-medium text-foreground underline underline-offset-4"
+          className={cn(
+            buttonVariants({ variant: 'outline', size: 'lg' }),
+            'w-full rounded-full border-white/15 bg-transparent text-white hover:border-brand/40 hover:bg-white/5 hover:text-brand',
+          )}
         >
           Voltar para o login
         </a>
@@ -140,50 +150,70 @@ export function ForgotPasswordForm() {
   return (
     <form className="flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="tenantDomain">Domínio</Label>
-        <Input
-          id="tenantDomain"
-          name="tenantDomain"
-          type="text"
-          autoComplete="organization"
-          autoCapitalize="none"
-          autoFocus
-          spellCheck={false}
-          placeholder="minha-oficina"
-          value={values.tenantDomain}
-          onChange={handleChange('tenantDomain')}
-          onBlur={handleDomainBlur}
-          aria-invalid={Boolean(fieldErrors.tenantDomain)}
-          aria-describedby={fieldErrors.tenantDomain ? 'tenantDomain-error' : 'tenantDomain-hint'}
-          disabled={isSubmitting}
-        />
+        <Label htmlFor="tenantDomain" className={AUTH_LABEL_CLASS}>
+          Domínio
+        </Label>
+        <div className="relative">
+          <Building2
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-fog/40"
+            strokeWidth={1.7}
+          />
+          <Input
+            id="tenantDomain"
+            name="tenantDomain"
+            type="text"
+            autoComplete="organization"
+            autoCapitalize="none"
+            autoFocus
+            spellCheck={false}
+            placeholder="minha-oficina"
+            value={values.tenantDomain}
+            onChange={handleChange('tenantDomain')}
+            onBlur={handleDomainBlur}
+            aria-invalid={Boolean(fieldErrors.tenantDomain)}
+            aria-describedby={fieldErrors.tenantDomain ? 'tenantDomain-error' : 'tenantDomain-hint'}
+            disabled={isSubmitting}
+            className={AUTH_INPUT_CLASS}
+          />
+        </div>
         {fieldErrors.tenantDomain ? (
           <p id="tenantDomain-error" className="text-sm text-destructive">
             {fieldErrors.tenantDomain}
           </p>
         ) : (
-          <p id="tenantDomain-hint" className="text-xs text-muted-foreground">
+          <p id="tenantDomain-hint" className="text-xs text-fog/45">
             O identificador do seu negócio, como você usa para entrar.
           </p>
         )}
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">E-mail</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="username"
-          autoCapitalize="none"
-          spellCheck={false}
-          placeholder="voce@exemplo.com"
-          value={values.email}
-          onChange={handleChange('email')}
-          aria-invalid={Boolean(fieldErrors.email)}
-          aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-          disabled={isSubmitting}
-        />
+        <Label htmlFor="email" className={AUTH_LABEL_CLASS}>
+          E-mail
+        </Label>
+        <div className="relative">
+          <Mail
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-fog/40"
+            strokeWidth={1.7}
+          />
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder="voce@exemplo.com"
+            value={values.email}
+            onChange={handleChange('email')}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+            disabled={isSubmitting}
+            className={AUTH_INPUT_CLASS}
+          />
+        </div>
         {fieldErrors.email ? (
           <p id="email-error" className="text-sm text-destructive">
             {fieldErrors.email}
@@ -193,8 +223,21 @@ export function ForgotPasswordForm() {
 
       {formError ? <Alert variant="destructive">{formError}</Alert> : null}
 
-      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Enviando…' : 'Enviar link de redefinição'}
+      <Button
+        type="submit"
+        variant="brand"
+        size="xl"
+        className="mt-1 w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="animate-spin" />
+            Enviando…
+          </>
+        ) : (
+          'Enviar link de redefinição'
+        )}
       </Button>
     </form>
   );

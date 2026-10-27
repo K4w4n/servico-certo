@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import { Loader2, ShieldCheck } from 'lucide-react';
 import { Suspense } from 'react';
+import { AuthShell } from '@/modules/identity/components/auth-shell';
+import { AUTH_CARD_CLASS, AUTH_FOOTER_CLASS } from '@/modules/identity/components/auth-form-styles';
 import { ResetPasswordFlow } from '@/modules/identity/components/reset-password-flow';
 
 export const metadata: Metadata = {
@@ -8,28 +11,41 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/40 p-6">
-      <section className="w-full max-w-md">
-        <div className="mb-6 flex flex-col gap-2 text-center">
-          <span className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-            Serviço Certo
+    <AuthShell>
+      <div className={AUTH_CARD_CLASS}>
+        <div className="flex flex-col gap-2">
+          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.22em] text-brand uppercase">
+            <span className="size-1.5 rounded-full bg-brand" />
+            Defina uma nova senha
           </span>
-          <h1 className="text-2xl font-semibold tracking-tight">Redefinir senha</h1>
-          <p className="text-sm text-muted-foreground">
+
+          <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-[1.7rem]">
+            Redefinir senha
+          </h2>
+
+          <p className="text-sm leading-relaxed text-fog/70">
             Crie uma nova senha para acessar sua conta.
           </p>
         </div>
 
-        <div className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm sm:p-8">
+        <div className="mt-7">
           <Suspense
             fallback={
-              <p className="py-6 text-center text-sm text-muted-foreground">Validando link…</p>
+              <p className="flex items-center justify-center gap-2 py-6 text-sm text-fog/60">
+                <Loader2 className="size-4 animate-spin" />
+                Validando link…
+              </p>
             }
           >
             <ResetPasswordFlow />
           </Suspense>
         </div>
-      </section>
-    </main>
+      </div>
+
+      <p className={AUTH_FOOTER_CLASS}>
+        <ShieldCheck className="size-3.5" />
+        Conexão segura · © 2026 Serviço Certo
+      </p>
+    </AuthShell>
   );
 }

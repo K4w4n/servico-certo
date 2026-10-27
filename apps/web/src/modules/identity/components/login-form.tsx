@@ -10,14 +10,10 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { ApiError } from '@/shared/lib/api-client';
 import { cn } from '@/shared/lib/cn';
+import { AUTH_INPUT_CLASS, AUTH_LABEL_CLASS } from './auth-form-styles';
 import { useAuth } from '../providers/auth-provider';
 
 const FIELDS = ['tenantDomain', 'email', 'password'] as const;
-
-const INPUT_CLASS =
-  'h-11 rounded-xl border-white/10 bg-white/[0.04] pl-10 text-white shadow-none placeholder:text-fog/30 focus-visible:border-brand/60 focus-visible:ring-brand/25 aria-invalid:border-destructive aria-invalid:ring-destructive/20';
-
-const LABEL_CLASS = 'text-[11px] font-semibold tracking-[0.16em] text-fog/60 uppercase';
 
 type FieldName = (typeof FIELDS)[number];
 type FieldErrors = Partial<Record<FieldName, string>>;
@@ -138,7 +134,7 @@ export function LoginForm() {
   return (
     <form className="flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="tenantDomain" className={LABEL_CLASS}>
+        <Label htmlFor="tenantDomain" className={AUTH_LABEL_CLASS}>
           Domínio
         </Label>
         <div className="relative">
@@ -162,7 +158,7 @@ export function LoginForm() {
             aria-invalid={Boolean(fieldErrors.tenantDomain)}
             aria-describedby={fieldErrors.tenantDomain ? 'tenantDomain-error' : undefined}
             disabled={isSubmitting}
-            className={INPUT_CLASS}
+            className={AUTH_INPUT_CLASS}
           />
         </div>
         {fieldErrors.tenantDomain ? (
@@ -177,7 +173,7 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email" className={LABEL_CLASS}>
+        <Label htmlFor="email" className={AUTH_LABEL_CLASS}>
           E-mail
         </Label>
         <div className="relative">
@@ -199,7 +195,7 @@ export function LoginForm() {
             aria-invalid={Boolean(fieldErrors.email)}
             aria-describedby={fieldErrors.email ? 'email-error' : undefined}
             disabled={isSubmitting}
-            className={INPUT_CLASS}
+            className={AUTH_INPUT_CLASS}
           />
         </div>
         {fieldErrors.email ? (
@@ -210,7 +206,7 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password" className={LABEL_CLASS}>
+        <Label htmlFor="password" className={AUTH_LABEL_CLASS}>
           Senha
         </Label>
         <div className="relative">
@@ -230,7 +226,7 @@ export function LoginForm() {
             aria-invalid={Boolean(fieldErrors.password)}
             aria-describedby={fieldErrors.password ? 'password-error' : undefined}
             disabled={isSubmitting}
-            className={cn(INPUT_CLASS, 'pr-11')}
+            className={cn(AUTH_INPUT_CLASS, 'pr-11')}
           />
           <button
             type="button"

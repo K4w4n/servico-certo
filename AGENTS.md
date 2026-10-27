@@ -504,15 +504,20 @@ DELETE /v1/service-orders/:id
   `surface-raised`, `fog`) e a fonte Outfit é exposta como `font-brand`
   (`--font-outfit` via `next/font`), sem alterar a fonte do restante do app.
   O bloco `.dark` do tema usa essa paleta e é aplicado por `class="dark"` — hoje
-  somente em `/login`. As demais telas seguem claras.
+  em `/login`, `/forgot-password` e `/reset-password`. As demais telas seguem
+  claras.
 - `/login` é a tela piloto do novo visual: layout de duas colunas com hero
   (`modules/identity/components/login-hero.tsx`), faixa de módulos e cards de
   destaque, card escuro com o formulário, CTA `variant="brand"` (gradiente âmbar)
   e toggle de senha. Validação, mensagens e fluxo de autenticação não mudaram.
+  O shell (fundo, hero e divisor) é compartilhado via
+  `modules/identity/components/auth-shell.tsx`; os estilos de campo/card ficam
+  em `auth-form-styles.ts`.
 - Recuperação de senha: `/forgot-password` envia a solicitação e sempre mostra
   mensagem genérica (anti-enumeração); `/reset-password?token=...` valida o token
   ao carregar e envia a nova senha, tratando link expirado/uso único. O fluxo
-  não autentica automaticamente.
+  não autentica automaticamente. As duas telas usam o tema escuro do login
+  (mesmo `AuthShell`, ícones nos campos, toggle de senha e CTA `brand`).
 - Gestão de usuários: `/accounts` lista as contas do tenant com paginação e
   filtros por nome/e-mail, criação, edição, troca de senha, envio de reset de
   senha por e-mail e bloqueio/desbloqueio. A própria conta não pode ser
@@ -579,8 +584,8 @@ DELETE /v1/service-orders/:id
   `fetch` binário no web.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
-- Tema escuro da marca escopado por `.dark`, começando pelo login; o rollout
-  para as demais telas será incremental.
+- Tema escuro da marca escopado por `.dark`, começando pelo login e pela
+  recuperação de senha; o rollout para as demais telas será incremental.
 
 ## Próximos passos naturais
 
