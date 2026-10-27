@@ -234,7 +234,9 @@ export function ProductFormDialog(props: ProductFormDialogProps) {
     >
       <form className="flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="product-name">Nome</Label>
+          <Label htmlFor="product-name" className="text-fog/70">
+            Nome
+          </Label>
           <Input
             id="product-name"
             name="name"
@@ -257,7 +259,9 @@ export function ProductFormDialog(props: ProductFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="product-description">Descrição</Label>
+          <Label htmlFor="product-description" className="text-fog/70">
+            Descrição
+          </Label>
           <Textarea
             id="product-description"
             name="description"
@@ -278,7 +282,9 @@ export function ProductFormDialog(props: ProductFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="product-price">Preço (R$)</Label>
+          <Label htmlFor="product-price" className="text-fog/70">
+            Preço (R$)
+          </Label>
           <Input
             id="product-price"
             name="price"
@@ -299,7 +305,7 @@ export function ProductFormDialog(props: ProductFormDialogProps) {
               {fieldErrors.price}
             </p>
           ) : (
-            <p id="product-price-hint" className="text-xs text-muted-foreground">
+            <p id="product-price-hint" className="text-xs text-fog/45">
               Use vírgula para os centavos. Ex.: 45,90.
             </p>
           )}
@@ -311,7 +317,7 @@ export function ProductFormDialog(props: ProductFormDialogProps) {
           <Button type="button" variant="outline" onClick={props.onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="brand" disabled={isSubmitting}>
             {isSubmitting ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Criar produto'}
           </Button>
         </div>
