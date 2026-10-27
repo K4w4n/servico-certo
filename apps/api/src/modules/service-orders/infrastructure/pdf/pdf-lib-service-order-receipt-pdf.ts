@@ -27,13 +27,11 @@ const TABLE_TEXT_ASCENT = 6.5;
 const TABLE_TEXT_DESCENT = 1.9;
 
 const COLORS = {
-  text: rgb(0.12, 0.14, 0.17),
-  muted: rgb(0.42, 0.45, 0.5),
-  line: rgb(0.85, 0.86, 0.88),
-  soft: rgb(0.96, 0.97, 0.98),
-  zebra: rgb(0.975, 0.978, 0.982),
-  header: rgb(0.11, 0.16, 0.22),
-  white: rgb(1, 1, 1),
+  ink: rgb(0.102, 0.102, 0.102),
+  text: rgb(0.18, 0.18, 0.18),
+  muted: rgb(0.42, 0.42, 0.42),
+  line: rgb(0.86, 0.86, 0.86),
+  brand: rgb(0.961, 0.773, 0.094),
 } as const;
 
 const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
@@ -153,63 +151,92 @@ class ReceiptWriter {
   }
 
   drawHeader(): void {
+    const top = PAGE_HEIGHT - MARGIN;
+    const right = PAGE_WIDTH - MARGIN;
+
     this.page.drawRectangle({
-      x: 0,
-      y: PAGE_HEIGHT - 124,
-      width: PAGE_WIDTH,
-      height: 124,
-      color: COLORS.header,
+      x: MARGIN,
+      y: top - 30,
+      width: 5,
+      height: 30,
+      color: COLORS.brand,
     });
 
-    this.page.drawText(fitText(this.data.tenant.name, this.fonts.bold, 18, CONTENT_WIDTH - 100), {
-      x: MARGIN,
-      y: PAGE_HEIGHT - 54,
-      size: 18,
-      font: this.fonts.bold,
-      color: COLORS.white,
-    });
-    this.page.drawText(
-      fitText(this.data.tenant.domain, this.fonts.regular, 9, CONTENT_WIDTH - 100),
-      {
-        x: MARGIN,
-        y: PAGE_HEIGHT - 72,
-        size: 9,
-        font: this.fonts.regular,
-        color: rgb(0.8, 0.83, 0.86),
-      },
-    );
-    this.page.drawText('COMPROVANTE', {
-      x: PAGE_WIDTH - MARGIN - this.fonts.bold.widthOfTextAtSize('COMPROVANTE', 9),
-      y: PAGE_HEIGHT - 54,
-      size: 9,
-      font: this.fonts.bold,
-      color: rgb(0.8, 0.83, 0.86),
-    });
-    this.page.drawText(`Ordem de serviço #${this.data.order.protocol}`, {
-      x: MARGIN,
-      y: PAGE_HEIGHT - 102,
-      size: 15,
-      font: this.fonts.bold,
-      color: COLORS.white,
-    });
-
-    this.y = PAGE_HEIGHT - 152;
-  }
-
-  drawSection(title: string): void {
-    this.ensureSpace(30);
-    this.page.drawText(title.toUpperCase(), {
-      x: MARGIN,
-      y: this.y,
+    this.page.drawText('SERVIÇO CERTO', {
+      x: MARGIN + 14,
+      y: top - 7,
       size: 8,
       font: this.fonts.bold,
       color: COLORS.muted,
     });
-    this.y -= 7;
+
+    this.page.drawText(fitText(this.data.tenant.name, this.fonts.bold, 19, 300), {
+      x: MARGIN + 14,
+      y: top - 29,
+      size: 19,
+      font: this.fonts.bold,
+      color: COLORS.ink,
+    });
+
+    this.page.drawText(fitText(this.data.tenant.domain, this.fonts.regular, 9, 300), {
+      x: MARGIN + 14,
+      y: top - 43,
+      size: 9,
+      font: this.fonts.regular,
+      color: COLORS.muted,
+    });
+
+    this.drawRightText('COMPROVANTE', right, top - 7, 8, this.fonts.bold, COLORS.muted);
+    this.drawRightText(
+      `#${this.data.order.protocol}`,
+      right,
+      top - 30,
+      17,
+      this.fonts.bold,
+      COLORS.ink,
+    );
+    this.drawRightText(
+      fitText(`Emitido em ${formatDateTime(this.data.generatedAt)}`, this.fonts.regular, 8, 210),
+      right,
+      top - 44,
+      8,
+      this.fonts.regular,
+      COLORS.muted,
+    );
+
+    const ruleY = top - 58;
+
+    this.page.drawLine({
+      start: { x: MARGIN, y: ruleY },
+      end: { x: right, y: ruleY },
+      thickness: 2.4,
+      color: COLORS.brand,
+    });
+
+    this.y = ruleY - 26;
+  }
+
+  drawSection(title: string): void {
+    this.ensureSpace(30);
+    this.page.drawRectangle({
+      x: MARGIN,
+      y: this.y - 1,
+      width: 5,
+      height: 5,
+      color: COLORS.brand,
+    });
+    this.page.drawText(title.toUpperCase(), {
+      x: MARGIN + 12,
+      y: this.y,
+      size: 8.5,
+      font: this.fonts.bold,
+      color: COLORS.ink,
+    });
+    this.y -= 8;
     this.page.drawLine({
       start: { x: MARGIN, y: this.y },
       end: { x: PAGE_WIDTH - MARGIN, y: this.y },
-      thickness: 0.7,
+      thickness: 0.6,
       color: COLORS.line,
     });
     this.y -= 16;
@@ -258,13 +285,6 @@ class ReceiptWriter {
       this.ensureSpace(26);
       const headerTextY = this.y + 2.8;
 
-      this.page.drawRectangle({
-        x: MARGIN,
-        y: this.y - 6,
-        width: CONTENT_WIDTH,
-        height: 22,
-        color: COLORS.soft,
-      });
       this.page.drawText('Descrição', {
         x: columns.description,
         y: headerTextY,
@@ -296,7 +316,14 @@ class ReceiptWriter {
         this.fonts.bold,
         COLORS.muted,
       );
-      this.y -= 24;
+      this.y -= 9;
+      this.page.drawLine({
+        start: { x: MARGIN, y: this.y },
+        end: { x: PAGE_WIDTH - MARGIN, y: this.y },
+        thickness: 0.8,
+        color: COLORS.ink,
+      });
+      this.y -= 15;
     };
 
     drawTableHeader();
@@ -316,7 +343,7 @@ class ReceiptWriter {
       })),
     ];
 
-    items.forEach((item, index) => {
+    items.forEach((item) => {
       const descriptionLines = wrapText(item.name, this.fonts.regular, 9, columns.descriptionWidth);
       const rowHeight = Math.max(22, (descriptionLines.length - 1) * TABLE_LINE_HEIGHT + 10);
 
@@ -333,16 +360,6 @@ class ReceiptWriter {
       const singleLineBlockHeight = TABLE_TEXT_ASCENT + TABLE_TEXT_DESCENT;
       const numericTop = rowTop - (rowHeight - singleLineBlockHeight) / 2;
       const numericBaseline = numericTop - TABLE_TEXT_ASCENT;
-
-      if (index % 2 === 1) {
-        this.page.drawRectangle({
-          x: MARGIN,
-          y: rowTop - rowHeight,
-          width: CONTENT_WIDTH,
-          height: rowHeight,
-          color: COLORS.zebra,
-        });
-      }
 
       let descriptionY = textBaseline;
 
@@ -391,15 +408,22 @@ class ReceiptWriter {
   }
 
   drawTotal(totalCents: number): void {
-    this.ensureSpace(46);
+    this.ensureSpace(50);
     const total = formatCurrency(totalCents);
 
-    this.y -= 7;
+    this.y -= 6;
+    this.page.drawLine({
+      start: { x: MARGIN, y: this.y },
+      end: { x: PAGE_WIDTH - MARGIN, y: this.y },
+      thickness: 1.2,
+      color: COLORS.brand,
+    });
+    this.y -= 18;
     this.drawRightText(
       'Total',
       TABLE_COLUMNS.unitPriceRight,
       this.y,
-      10,
+      9.5,
       this.fonts.bold,
       COLORS.muted,
     );
@@ -407,9 +431,9 @@ class ReceiptWriter {
       total,
       TABLE_COLUMNS.totalRight,
       this.y - 2,
-      13,
+      14,
       this.fonts.bold,
-      COLORS.text,
+      COLORS.ink,
     );
     this.y -= 33;
   }
@@ -461,8 +485,15 @@ class ReceiptWriter {
         thickness: 0.5,
         color: COLORS.line,
       });
-      page.drawText('Serviço Certo', {
+      page.drawRectangle({
         x: MARGIN,
+        y: 25,
+        width: 4,
+        height: 4,
+        color: COLORS.brand,
+      });
+      page.drawText('Serviço Certo · kawan.dev.br', {
+        x: MARGIN + 9,
         y: 28,
         size: 7.5,
         font: this.fonts.regular,
@@ -501,18 +532,25 @@ class ReceiptWriter {
     this.page = this.document.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     this.y = PAGE_HEIGHT - MARGIN;
 
-    this.page.drawText(`Comprovante da ordem de serviço #${this.data.order.protocol}`, {
+    this.page.drawRectangle({
       x: MARGIN,
+      y: this.y - 1,
+      width: 5,
+      height: 5,
+      color: COLORS.brand,
+    });
+    this.page.drawText(`Comprovante da ordem de serviço #${this.data.order.protocol}`, {
+      x: MARGIN + 12,
       y: this.y,
       size: 10,
       font: this.fonts.bold,
-      color: COLORS.muted,
+      color: COLORS.ink,
     });
     this.y -= 9;
     this.page.drawLine({
       start: { x: MARGIN, y: this.y },
       end: { x: PAGE_WIDTH - MARGIN, y: this.y },
-      thickness: 0.7,
+      thickness: 0.8,
       color: COLORS.line,
     });
     this.y -= 22;

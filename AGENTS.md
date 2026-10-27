@@ -598,7 +598,8 @@ DELETE /v1/service-orders/:id
   do criador, soft delete e IDs `ord_`.
 - Comprovante da ordem: PDF gerado no backend com `pdf-lib`, incluindo tenant,
   ordem, cliente, itens, criador, datas e emissão; download autenticado via
-  `fetch` binário no web.
+  `fetch` binário no web. O layout é claro e otimizado para impressão (sem faixas
+  ou blocos escuros; o âmbar da marca aparece só em detalhes finos).
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 - Tema escuro da marca aplicado em todas as telas do web (auth, home, cadastros,
