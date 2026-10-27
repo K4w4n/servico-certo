@@ -143,14 +143,34 @@
     color-scheme: dark;
   }
 
-  .dark input:-webkit-autofill {
-    -webkit-text-fill-color: var(--foreground);
-    box-shadow: 0 0 0 1000px var(--input) inset;
-  }
-
   body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
   }
+}
+
+/*
+ * Autofill do Chrome pinta um fundo amarelo nos inputs. No tema escuro,
+ * sobrescrevemos com a mesma superfície dos campos (#2f2f2f) e texto claro.
+ * Fica fora de @layer para vencer o `shadow-none`/utilities do componente.
+ */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px #2f2f2f inset !important;
+  box-shadow: 0 0 0 1000px #2f2f2f inset !important;
+}
+
+.dark input:-webkit-autofill:focus-visible {
+  -webkit-box-shadow:
+    0 0 0 1000px #2f2f2f inset,
+    0 0 0 3px rgba(245, 197, 24, 0.25) !important;
+  box-shadow:
+    0 0 0 1000px #2f2f2f inset,
+    0 0 0 3px rgba(245, 197, 24, 0.25) !important;
 }
