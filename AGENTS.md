@@ -319,7 +319,7 @@ Rotas:
 POST   /v1/service-orders
 GET    /v1/service-orders?limit&offset&protocol&customerId&productId&serviceId
 GET    /v1/service-orders/:id
-GET    /v1/service-orders/:id/receipt
+GET    /v1/service-orders/:id/receipt?format=pdf|image
 PATCH  /v1/service-orders/:id
 DELETE /v1/service-orders/:id
 ```
@@ -354,10 +354,12 @@ DELETE /v1/service-orders/:id
 - O criador da ordem é congelado na criação (`created_by_account_id`,
   `created_by_name`, `created_by_email`); a resposta expõe
   `createdBy: { id, name, email } | null` (ordens legadas podem ter `null`).
-- `GET /v1/service-orders/:id/receipt` gera o comprovante em PDF com dados da
-  ordem, cliente, itens, tenant, criador da ordem, datas de criação/atualização,
-  quem gerou o PDF e o horário de geração. O PDF é gerado no backend com
-  `pdf-lib` e retornado como `application/pdf` com `Content-Disposition`.
+- `GET /v1/service-orders/:id/receipt` gera o comprovante com dados da ordem,
+  cliente, itens, tenant, criador da ordem, datas de criação/atualização, quem
+  gerou e o horário de geração. `?format=pdf` (padrão) retorna `application/pdf`
+  gerado com `pdf-lib`; `?format=image` retorna `image/png`, rasterizado do
+  próprio PDF com `pdf-to-img` + `@napi-rs/canvas` (páginas múltiplas são
+  empilhadas em uma única imagem). Ambos vêm com `Content-Disposition`.
 - Migration `009` cria `service_orders`, `service_order_products`,
   `service_order_services` e `service_order_counters`; a migration `010` adiciona
   o snapshot do criador à ordem.
@@ -568,8 +570,9 @@ DELETE /v1/service-orders/:id
   (1–9999), exige ao menos um item e calcula o total. Na edição, o PATCH envia
   apenas cliente, observação ou a lista de itens que mudou. O protocolo é gerado
   pela API e não é editável. A ação **Abrir** exibe um popup com os principais
-  dados da ordem e um botão para baixar o comprovante em PDF. Excluir é soft
-  delete. A tela e os dialogs (formulário, detalhes e PDF) usam o tema escuro
+  dados da ordem e um menu de download com duas opções: **Arquivo PDF** e
+  **Arquivo em Imagem** (PNG). Excluir é soft delete. A tela e os dialogs
+  (formulário, detalhes e comprovante) usam o tema escuro
   (`AppShell theme="dark"`), com os selects de busca no padrão da marca.
 - Ainda faltam: estoque, faturamento/nota e papéis/permissões.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
@@ -597,9 +600,11 @@ DELETE /v1/service-orders/:id
   praticados independentes do catálogo, snapshots de nome de produto/serviço e
   do criador, soft delete e IDs `ord_`.
 - Comprovante da ordem: PDF gerado no backend com `pdf-lib`, incluindo tenant,
-  ordem, cliente, itens, criador, datas e emissão; download autenticado via
-  `fetch` binário no web. O layout é claro e otimizado para impressão (sem faixas
-  ou blocos escuros; o âmbar da marca aparece só em detalhes finos).
+  ordem, cliente, itens, criador, datas e emissão. Pode ser baixado em PDF ou em
+  PNG (`?format=image`, rasterizado com `pdf-to-img`/`@napi-rs/canvas`; páginas
+  múltiplas viram uma imagem única). O layout é claro e otimizado para impressão
+  (sem faixas ou blocos escuros; o âmbar da marca aparece só em detalhes finos).
+  O download no web é autenticado com `fetch` binário.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 - Tema escuro da marca aplicado em todas as telas do web (auth, home, cadastros,

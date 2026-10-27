@@ -10,11 +10,13 @@ import { GetServiceOrderUseCase } from './application/use-cases/get-service-orde
 import { ListServiceOrdersUseCase } from './application/use-cases/list-service-orders.use-case.js';
 import { UpdateServiceOrderUseCase } from './application/use-cases/update-service-order.use-case.js';
 import { SERVICE_ORDER_RECEIPT_PDF } from './application/ports/service-order-receipt-pdf.js';
+import { SERVICE_ORDER_RECEIPT_IMAGE } from './application/ports/service-order-receipt-image.js';
 import { SERVICE_ORDER_QUERIES } from './application/queries/service-order.queries.js';
 import { SERVICE_ORDER_REPOSITORY } from './domain/repositories/service-order.repository.js';
 import { KnexServiceOrderQueries } from './infrastructure/persistence/knex-service-order.queries.js';
 import { KnexServiceOrderRepository } from './infrastructure/persistence/knex-service-order.repository.js';
 import { PdfLibServiceOrderReceiptPdf } from './infrastructure/pdf/pdf-lib-service-order-receipt-pdf.js';
+import { PdfToImageServiceOrderReceiptImage } from './infrastructure/pdf/pdf-to-image-service-order-receipt-image.js';
 import { ServiceOrdersController } from './presentation/http/service-orders.controller.js';
 
 @Module({
@@ -30,6 +32,7 @@ import { ServiceOrdersController } from './presentation/http/service-orders.cont
     { provide: SERVICE_ORDER_REPOSITORY, useClass: KnexServiceOrderRepository },
     { provide: SERVICE_ORDER_QUERIES, useClass: KnexServiceOrderQueries },
     { provide: SERVICE_ORDER_RECEIPT_PDF, useClass: PdfLibServiceOrderReceiptPdf },
+    { provide: SERVICE_ORDER_RECEIPT_IMAGE, useClass: PdfToImageServiceOrderReceiptImage },
   ],
 })
 export class ServiceOrdersModule {}

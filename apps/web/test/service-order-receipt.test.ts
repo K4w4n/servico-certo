@@ -24,7 +24,9 @@ describe('downloadServiceOrderReceipt', () => {
 
     await downloadServiceOrderReceipt(download, 'ord_AaFrLZYfcVevBwi2on-gZQ');
 
-    expect(download).toHaveBeenCalledWith('/service-orders/ord_AaFrLZYfcVevBwi2on-gZQ/receipt');
+    expect(download).toHaveBeenCalledWith(
+      '/service-orders/ord_AaFrLZYfcVevBwi2on-gZQ/receipt?format=pdf',
+    );
     expect(anchor.href).toBe('blob:comprovante');
     expect(anchor.download).toBe('comprovante-ordem-100001.pdf');
     expect(click).toHaveBeenCalledTimes(1);
@@ -48,5 +50,27 @@ describe('downloadServiceOrderReceipt', () => {
     await downloadServiceOrderReceipt(download, 'ord_AaFrLZYfcVevBwi2on-gZQ');
 
     expect(anchor.download).toBe('comprovante-ordem.pdf');
+  });
+
+  it('solicita a imagem e usa o nome padrão PNG', async () => {
+    const download = vi.fn().mockResolvedValue({
+      blob: new Blob(['png'], { type: 'image/png' }),
+      filename: null,
+    });
+    const anchor = document.createElement('a');
+
+    vi.spyOn(document, 'createElement').mockReturnValue(anchor);
+    vi.spyOn(anchor, 'click').mockImplementation(() => undefined);
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn().mockReturnValue('blob:comprovante'),
+      revokeObjectURL: vi.fn(),
+    });
+
+    await downloadServiceOrderReceipt(download, 'ord_AaFrLZYfcVevBwi2on-gZQ', 'image');
+
+    expect(download).toHaveBeenCalledWith(
+      '/service-orders/ord_AaFrLZYfcVevBwi2on-gZQ/receipt?format=image',
+    );
+    expect(anchor.download).toBe('comprovante-ordem.png');
   });
 });

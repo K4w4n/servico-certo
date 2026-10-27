@@ -7,6 +7,10 @@ import {
   type ServiceOrderReceiptPdf,
 } from '../ports/service-order-receipt-pdf.js';
 import {
+  SERVICE_ORDER_RECEIPT_IMAGE,
+  type ServiceOrderReceiptImage,
+} from '../ports/service-order-receipt-image.js';
+import {
   SERVICE_ORDER_QUERIES,
   type ServiceOrderQueries,
 } from '../queries/service-order.queries.js';
@@ -22,11 +26,13 @@ export type GenerateServiceOrderReceiptCommand = {
     name: string;
     email: string;
   };
+  format?: 'pdf' | 'image';
 };
 
 export type ServiceOrderReceipt = {
   buffer: Uint8Array;
   filename: string;
+  contentType: 'application/pdf' | 'image/png';
 };
 
 @Injectable()
@@ -36,6 +42,7 @@ export class GenerateServiceOrderReceiptUseCase {
     @Inject(TENANT_REPOSITORY) private readonly tenants: TenantRepository,
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(SERVICE_ORDER_RECEIPT_PDF) private readonly pdf: ServiceOrderReceiptPdf,
+    @Inject(SERVICE_ORDER_RECEIPT_IMAGE) private readonly image: ServiceOrderReceiptImage,
   ) {}
 
   async execute(command: GenerateServiceOrderReceiptCommand): Promise<ServiceOrderReceipt> {
@@ -52,7 +59,7 @@ export class GenerateServiceOrderReceiptUseCase {
       throw new ServiceOrderTenantNotFoundError();
     }
 
-    const buffer = await this.pdf.generate({
+    const pdfBuffer = await this.pdf.generate({
       order,
       tenant: {
         name: tenant.name,
@@ -62,9 +69,18 @@ export class GenerateServiceOrderReceiptUseCase {
       generatedBy: command.generatedBy,
     });
 
+    if (command.format === 'image') {
+      return {
+        buffer: await this.image.render(pdfBuffer),
+        filename: `comprovante-ordem-${order.protocol}.png`,
+        contentType: 'image/png',
+      };
+    }
+
     return {
-      buffer,
+      buffer: pdfBuffer,
       filename: `comprovante-ordem-${order.protocol}.pdf`,
+      contentType: 'application/pdf',
     };
   }
 }

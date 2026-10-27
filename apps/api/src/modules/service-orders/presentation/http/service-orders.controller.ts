@@ -31,12 +31,14 @@ import {
   listServiceOrdersQuerySchema,
   listServiceOrdersResponseSchema,
   serviceOrderIdSchema,
+  serviceOrderReceiptQuerySchema,
   serviceOrderSchema,
   updateServiceOrderSchema,
   type CreateServiceOrderInput,
   type ListServiceOrdersQuery,
   type ListServiceOrdersResponse,
   type ServiceOrder as ServiceOrderResponse,
+  type ServiceOrderReceiptQuery,
   type UpdateServiceOrderInput,
 } from '@servico-certo/contracts';
 import { decodePublicId } from '../../../../shared/ids/public-id.js';
@@ -218,29 +220,39 @@ export class ServiceOrdersController {
   }
 
   @Get(':id/receipt')
-  @Header('Content-Type', 'application/pdf')
   @Header('Cache-Control', 'no-store')
-  @ApiOperation({ summary: 'Gera o comprovante em PDF de uma ordem de serviço' })
+  @ApiOperation({ summary: 'Gera o comprovante de uma ordem de serviço em PDF ou imagem' })
   @ApiParam({
     name: 'id',
     example: EXAMPLE_SERVICE_ORDER_ID,
     description: 'ID público da ordem de serviço',
   })
-  @ApiProduces('application/pdf')
+  @ApiQuery({
+    name: 'format',
+    required: false,
+    enum: ['pdf', 'image'],
+    description: 'Formato do comprovante (padrão: pdf)',
+  })
+  @ApiProduces('application/pdf', 'image/png')
   @ApiResponse({
     status: 200,
-    description: 'Comprovante em PDF',
+    description: 'Comprovante em PDF ou PNG',
     content: {
       'application/pdf': {
         schema: { type: 'string', format: 'binary' },
       },
+      'image/png': {
+        schema: { type: 'string', format: 'binary' },
+      },
     },
   })
-  @ApiResponse({ status: 400, description: 'ID inválido' })
+  @ApiResponse({ status: 400, description: 'ID ou formato inválido' })
   @ApiResponse({ status: 401, description: 'Não autenticado' })
   @ApiResponse({ status: 404, description: 'Ordem de serviço não encontrada' })
   async receipt(
     @Param('id', new ZodValidationPipe(serviceOrderIdSchema)) id: string,
+    @Query(new ZodValidationPipe(serviceOrderReceiptQuerySchema))
+    query: ServiceOrderReceiptQuery,
     @TenantId() tenantId: string,
     @CurrentAccount() account: AuthenticatedAccount,
     @Res({ passthrough: true }) response: Response,
@@ -252,8 +264,10 @@ export class ServiceOrdersController {
         name: account.name,
         email: account.email,
       },
+      format: query.format,
     });
 
+    response.setHeader('Content-Type', receipt.contentType);
     response.setHeader('Content-Disposition', `attachment; filename="${receipt.filename}"`);
     response.setHeader('Content-Length', receipt.buffer.length);
 

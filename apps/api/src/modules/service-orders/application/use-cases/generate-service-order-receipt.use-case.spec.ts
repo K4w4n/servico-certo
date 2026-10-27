@@ -3,6 +3,7 @@ import { Tenant } from '../../../identity/domain/entities/tenant.js';
 import { TenantDomain } from '../../../identity/domain/value-objects/tenant-domain.js';
 import type { TenantRepository } from '../../../identity/domain/repositories/tenant.repository.js';
 import type { ServiceOrderReceiptPdf } from '../ports/service-order-receipt-pdf.js';
+import type { ServiceOrderReceiptImage } from '../ports/service-order-receipt-image.js';
 import type { ServiceOrderQueries, ServiceOrderView } from '../queries/service-order.queries.js';
 import {
   ServiceOrderNotFoundError,
@@ -69,18 +70,22 @@ function createDependencies() {
   const pdf = {
     generate: vi.fn().mockResolvedValue(Buffer.from('%PDF-comprovante')),
   } as unknown as ServiceOrderReceiptPdf;
+  const image = {
+    render: vi.fn().mockResolvedValue(Buffer.from('%PNG-comprovante')),
+  } as unknown as ServiceOrderReceiptImage;
 
-  return { queries, tenants, pdf };
+  return { queries, tenants, pdf, image };
 }
 
 describe('GenerateServiceOrderReceiptUseCase', () => {
   it('gera o comprovante com tenant, criador da ordem e dados de emissão', async () => {
-    const { queries, tenants, pdf } = createDependencies();
+    const { queries, tenants, pdf, image } = createDependencies();
     const useCase = new GenerateServiceOrderReceiptUseCase(
       queries,
       tenants,
       { now: () => now },
       pdf,
+      image,
     );
 
     const receipt = await useCase.execute({
@@ -93,6 +98,7 @@ describe('GenerateServiceOrderReceiptUseCase', () => {
     });
 
     expect(receipt.filename).toBe('comprovante-ordem-100001.pdf');
+    expect(receipt.contentType).toBe('application/pdf');
     expect(receipt.buffer.toString()).toBe('%PDF-comprovante');
     expect(vi.mocked(pdf.generate)).toHaveBeenCalledWith({
       order,
@@ -108,14 +114,38 @@ describe('GenerateServiceOrderReceiptUseCase', () => {
     });
   });
 
+  it('gera o comprovante em imagem quando solicitado', async () => {
+    const { queries, tenants, pdf, image } = createDependencies();
+    const useCase = new GenerateServiceOrderReceiptUseCase(
+      queries,
+      tenants,
+      { now: () => now },
+      pdf,
+      image,
+    );
+
+    const receipt = await useCase.execute({
+      tenantId: 'tenant-1',
+      serviceOrderId: 'order-1',
+      generatedBy: { name: 'Maria', email: 'maria@exemplo.com' },
+      format: 'image',
+    });
+
+    expect(receipt.filename).toBe('comprovante-ordem-100001.png');
+    expect(receipt.contentType).toBe('image/png');
+    expect(receipt.buffer.toString()).toBe('%PNG-comprovante');
+    expect(vi.mocked(image.render)).toHaveBeenCalledWith(Buffer.from('%PDF-comprovante'));
+  });
+
   it('rejeita ordem inexistente', async () => {
-    const { queries, tenants, pdf } = createDependencies();
+    const { queries, tenants, pdf, image } = createDependencies();
     vi.mocked(queries.findById).mockResolvedValueOnce(null);
     const useCase = new GenerateServiceOrderReceiptUseCase(
       queries,
       tenants,
       { now: () => now },
       pdf,
+      image,
     );
 
     await expect(
@@ -128,13 +158,14 @@ describe('GenerateServiceOrderReceiptUseCase', () => {
   });
 
   it('rejeita tenant inexistente', async () => {
-    const { queries, tenants, pdf } = createDependencies();
+    const { queries, tenants, pdf, image } = createDependencies();
     vi.mocked(tenants.findById).mockResolvedValueOnce(null);
     const useCase = new GenerateServiceOrderReceiptUseCase(
       queries,
       tenants,
       { now: () => now },
       pdf,
+      image,
     );
 
     await expect(

@@ -1,10 +1,11 @@
 'use client';
 
-import { Download } from 'lucide-react';
-import { useState } from 'react';
-import type { ServiceOrder } from '@servico-certo/contracts';
+import { ChevronDown, Download, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { ServiceOrder, ServiceOrderReceiptFormat } from '@servico-certo/contracts';
 import { formatDocument, formatPhoneNumber } from '@/modules/customers/lib/customer-format';
 import type { ApiClient } from '@/shared/lib/api-client';
+import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/price';
 import { Alert } from '@/shared/ui/alert';
 import { Button } from '@/shared/ui/button';
@@ -26,25 +27,48 @@ export function ServiceOrderDetailsDialog({
   download,
   onClose,
 }: ServiceOrderDetailsDialogProps) {
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadingFormat, setDownloadingFormat] = useState<ServiceOrderReceiptFormat | null>(
+    null,
+  );
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isDownloading = downloadingFormat !== null;
 
-  async function handleDownload() {
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown);
+
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [isMenuOpen]);
+
+  async function handleDownload(format: ServiceOrderReceiptFormat) {
     setDownloadError(null);
-    setIsDownloading(true);
+    setDownloadingFormat(format);
+    setIsMenuOpen(false);
 
     try {
-      await downloadServiceOrderReceipt(
-        download,
-        order.id,
-        `comprovante-ordem-${order.protocol}.pdf`,
-      );
+      await downloadServiceOrderReceipt(download, order.id, format);
     } catch (error) {
       setDownloadError(
-        getServiceOrderErrorMessage(error, 'Não foi possível gerar o comprovante em PDF.'),
+        getServiceOrderErrorMessage(
+          error,
+          format === 'image'
+            ? 'Não foi possível gerar o comprovante em imagem.'
+            : 'Não foi possível gerar o comprovante em PDF.',
+        ),
       );
     } finally {
-      setIsDownloading(false);
+      setDownloadingFormat(null);
     }
   }
 
@@ -194,10 +218,69 @@ export function ServiceOrderDetailsDialog({
           <Button variant="outline" onClick={onClose} disabled={isDownloading}>
             Fechar
           </Button>
-          <Button variant="brand" onClick={handleDownload} disabled={isDownloading}>
-            <Download aria-hidden="true" />
-            {isDownloading ? 'Gerando PDF…' : 'Baixar comprovante PDF'}
-          </Button>
+
+          <div
+            ref={menuRef}
+            className="relative"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && isMenuOpen) {
+                event.stopPropagation();
+                setIsMenuOpen(false);
+              }
+            }}
+          >
+            <Button
+              variant="brand"
+              onClick={() => setIsMenuOpen((current) => !current)}
+              disabled={isDownloading}
+              aria-haspopup="menu"
+              aria-expanded={isMenuOpen}
+              aria-controls="receipt-download-options"
+            >
+              {isDownloading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <Download aria-hidden="true" />
+              )}
+              {downloadingFormat === 'image'
+                ? 'Gerando imagem…'
+                : downloadingFormat === 'pdf'
+                  ? 'Gerando PDF…'
+                  : 'Baixar comprovante'}
+              <ChevronDown
+                aria-hidden="true"
+                className={cn('transition-transform', isMenuOpen && 'rotate-180')}
+              />
+            </Button>
+
+            {isMenuOpen ? (
+              <div
+                id="receipt-download-options"
+                role="menu"
+                aria-label="Formato do comprovante"
+                className="absolute right-0 bottom-full z-20 mb-2 w-52 rounded-xl border border-white/15 bg-surface-raised p-1 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)]"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleDownload('pdf')}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-fog/80 transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-[3px] focus-visible:ring-brand/30 focus-visible:outline-none"
+                >
+                  <FileText aria-hidden="true" className="size-4 text-brand" />
+                  Arquivo PDF
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => handleDownload('image')}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-fog/80 transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-[3px] focus-visible:ring-brand/30 focus-visible:outline-none"
+                >
+                  <ImageIcon aria-hidden="true" className="size-4 text-brand" />
+                  Arquivo em Imagem
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </Dialog>

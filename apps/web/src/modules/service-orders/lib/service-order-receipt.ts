@@ -1,11 +1,15 @@
+import type { ServiceOrderReceiptFormat } from '@servico-certo/contracts';
 import type { ApiClient } from '@/shared/lib/api-client';
 
 export async function downloadServiceOrderReceipt(
   download: ApiClient['download'],
   serviceOrderId: string,
-  fallbackFilename = 'comprovante-ordem.pdf',
+  format: ServiceOrderReceiptFormat = 'pdf',
 ): Promise<void> {
-  const file = await download(`/service-orders/${encodeURIComponent(serviceOrderId)}/receipt`);
+  const file = await download(
+    `/service-orders/${encodeURIComponent(serviceOrderId)}/receipt?format=${format}`,
+  );
+  const fallbackFilename = format === 'image' ? 'comprovante-ordem.png' : 'comprovante-ordem.pdf';
   const objectUrl = URL.createObjectURL(file.blob);
   const anchor = document.createElement('a');
 

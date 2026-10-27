@@ -311,13 +311,36 @@ describe('ServiceOrdersScreen', () => {
     expect(within(dialog).getByText(/211,80/)).toBeInTheDocument();
     expect(within(dialog).getByText('2')).toBeInTheDocument();
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante PDF' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante' }));
+    fireEvent.click(within(dialog).getByRole('menuitem', { name: 'Arquivo PDF' }));
 
     await waitFor(() => {
       expect(mocks.downloadServiceOrderReceipt).toHaveBeenCalledWith(
         mocks.download,
         ORDER_1.id,
-        'comprovante-ordem-100001.pdf',
+        'pdf',
+      );
+    });
+  });
+
+  it('baixa o comprovante em imagem quando escolhido', async () => {
+    mocks.downloadServiceOrderReceipt.mockResolvedValue(undefined);
+
+    render(<ServiceOrdersScreen />);
+    await screen.findByText('#100001');
+
+    fireEvent.click(getRow('100001').getByRole('button', { name: 'Abrir' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Ordem de serviço #100001' });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante' }));
+    fireEvent.click(within(dialog).getByRole('menuitem', { name: 'Arquivo em Imagem' }));
+
+    await waitFor(() => {
+      expect(mocks.downloadServiceOrderReceipt).toHaveBeenCalledWith(
+        mocks.download,
+        ORDER_1.id,
+        'image',
       );
     });
   });
@@ -332,7 +355,8 @@ describe('ServiceOrdersScreen', () => {
 
     const dialog = await screen.findByRole('dialog', { name: 'Ordem de serviço #100001' });
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante PDF' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Baixar comprovante' }));
+    fireEvent.click(within(dialog).getByRole('menuitem', { name: 'Arquivo PDF' }));
 
     expect(
       await within(dialog).findByText('Não foi possível gerar o comprovante em PDF.'),

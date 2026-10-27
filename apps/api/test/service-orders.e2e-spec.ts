@@ -228,17 +228,21 @@ describe('Service orders (e2e)', () => {
       .set('Authorization', `Bearer ${tenant.accessToken}`);
   }
 
-  function getReceipt(tenant: RegisteredTenant, orderId: string) {
-    return request(server)
+  function getReceipt(tenant: RegisteredTenant, orderId: string, format?: 'pdf' | 'image') {
+    const call = request(server)
       .get(`/v1/service-orders/${orderId}/receipt`)
-      .set('Authorization', `Bearer ${tenant.accessToken}`)
-      .buffer(true)
-      .parse((response, callback) => {
-        const chunks: Buffer[] = [];
+      .set('Authorization', `Bearer ${tenant.accessToken}`);
 
-        response.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
-        response.on('end', () => callback(null, Buffer.concat(chunks)));
-      });
+    if (format) {
+      call.query({ format });
+    }
+
+    return call.buffer(true).parse((response, callback) => {
+      const chunks: Buffer[] = [];
+
+      response.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+      response.on('end', () => callback(null, Buffer.concat(chunks)));
+    });
   }
 
   function updateOrder(tenant: RegisteredTenant, orderId: string, body: Record<string, unknown>) {
@@ -590,6 +594,24 @@ describe('Service orders (e2e)', () => {
     expect(document.getAuthor()).toBe(tenantA.domain);
 
     await getReceipt(tenantB, order.id).expect(404);
+  });
+
+  it('gera comprovante em imagem PNG com os dados da ordem de serviço', async () => {
+    const order = await createBasicOrder(tenantA, customerGet, productCreate, serviceCreate);
+
+    const response = await getReceipt(tenantA, order.id, 'image').expect(200);
+
+    expect(response.headers['content-type']).toContain('image/png');
+    expect(response.headers['content-disposition']).toContain(
+      `attachment; filename="comprovante-ordem-${order.protocol}.png"`,
+    );
+    expect(Buffer.isBuffer(response.body)).toBe(true);
+
+    const buffer = response.body as Buffer;
+
+    expect(buffer.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+
+    await getReceipt(tenantB, order.id, 'image').expect(404);
   });
 
   it('atualiza cliente, observação, produtos e serviços', async () => {

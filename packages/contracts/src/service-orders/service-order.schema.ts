@@ -185,6 +185,10 @@ export const listServiceOrdersQuerySchema = z.object({
   serviceId: serviceIdSchema.optional(),
 });
 
+export const serviceOrderReceiptQuerySchema = z.object({
+  format: z.enum(['pdf', 'image']).default('pdf'),
+});
+
 export const listServiceOrdersResponseSchema = z.object({
   data: z.array(serviceOrderSchema),
   meta: paginationMetaSchema,
@@ -197,4 +201,6 @@ export type ServiceOrderServiceItem = z.infer<typeof serviceOrderServiceItemSche
 export type CreateServiceOrderInput = z.infer<typeof createServiceOrderSchema>;
 export type UpdateServiceOrderInput = z.infer<typeof updateServiceOrderSchema>;
 export type ListServiceOrdersQuery = z.infer<typeof listServiceOrdersQuerySchema>;
+export type ServiceOrderReceiptQuery = z.infer<typeof serviceOrderReceiptQuerySchema>;
+export type ServiceOrderReceiptFormat = ServiceOrderReceiptQuery['format'];
 export type ListServiceOrdersResponse = z.infer<typeof listServiceOrdersResponseSchema>;
