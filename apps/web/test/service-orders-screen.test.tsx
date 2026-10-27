@@ -308,6 +308,8 @@ describe('ServiceOrdersScreen', () => {
     expect(within(dialog).getByText('João')).toBeInTheDocument();
     expect(within(dialog).getByText('joao@exemplo.com')).toBeInTheDocument();
     expect(within(dialog).getByText('Troca de óleo e filtro')).toBeInTheDocument();
+    expect(within(dialog).getByText('Produto')).toBeInTheDocument();
+    expect(within(dialog).getByText('Serviço')).toBeInTheDocument();
     expect(within(dialog).getByText(/211,80/)).toBeInTheDocument();
     expect(within(dialog).getByText('2')).toBeInTheDocument();
 

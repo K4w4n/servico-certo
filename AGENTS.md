@@ -571,7 +571,8 @@ DELETE /v1/service-orders/:id
   apenas cliente, observação ou a lista de itens que mudou. O protocolo é gerado
   pela API e não é editável. A ação **Abrir** exibe um popup com os principais
   dados da ordem e um menu de download com duas opções: **Arquivo PDF** e
-  **Arquivo em Imagem** (PNG). Excluir é soft delete. A tela e os dialogs
+  **Arquivo em Imagem** (PNG). Na tabela de itens, cada linha identifica o tipo
+  (**Produto** ou **Serviço**). Excluir é soft delete. A tela e os dialogs
   (formulário, detalhes e comprovante) usam o tema escuro
   (`AppShell theme="dark"`), com os selects de busca no padrão da marca.
 - Ainda faltam: estoque, faturamento/nota e papéis/permissões.
@@ -600,8 +601,9 @@ DELETE /v1/service-orders/:id
   praticados independentes do catálogo, snapshots de nome de produto/serviço e
   do criador, soft delete e IDs `ord_`.
 - Comprovante da ordem: PDF gerado no backend com `pdf-lib`, incluindo tenant,
-  ordem, cliente, itens, criador, datas e emissão. Pode ser baixado em PDF ou em
-  PNG (`?format=image`, rasterizado com `pdf-to-img`/`@napi-rs/canvas`; páginas
+  ordem, cliente, itens, criador, datas e emissão. A tabela de itens tem a coluna
+  **Tipo** (`PRODUTO`/`SERVIÇO`). Pode ser baixado em PDF ou em PNG
+  (`?format=image`, rasterizado com `pdf-to-img`/`@napi-rs/canvas`; páginas
   múltiplas viram uma imagem única). O layout é claro e otimizado para impressão
   (sem faixas ou blocos escuros; o âmbar da marca aparece só em detalhes finos).
   O download no web é autenticado com `fetch` binário.

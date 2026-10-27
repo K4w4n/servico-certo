@@ -21,6 +21,21 @@ type ServiceOrderDetailsDialogProps = {
   onClose: () => void;
 };
 
+function ItemTypeBadge({ type }: { type: 'product' | 'service' }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase',
+        type === 'product'
+          ? 'border-brand/25 bg-brand/10 text-brand'
+          : 'border-white/10 bg-white/5 text-fog/70',
+      )}
+    >
+      {type === 'product' ? 'Produto' : 'Serviço'}
+    </span>
+  );
+}
+
 export function ServiceOrderDetailsDialog({
   order,
   tenantName,
@@ -150,6 +165,9 @@ export function ServiceOrderDetailsDialog({
               <thead>
                 <tr className="border-b border-white/10 bg-white/[0.03] text-left text-[11px] tracking-[0.12em] text-fog/45 uppercase">
                   <th scope="col" className="px-3 py-2 font-semibold">
+                    Tipo
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
                     Descrição
                   </th>
                   <th scope="col" className="px-3 py-2 text-right font-semibold">
@@ -166,6 +184,9 @@ export function ServiceOrderDetailsDialog({
               <tbody>
                 {order.products.map((item) => (
                   <tr key={`product-${item.productId}`} className="border-b last:border-0">
+                    <td className="px-3 py-2">
+                      <ItemTypeBadge type="product" />
+                    </td>
                     <td className="px-3 py-2">{item.name}</td>
                     <td className="px-3 py-2 text-right">{item.quantity}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">
@@ -178,6 +199,9 @@ export function ServiceOrderDetailsDialog({
                 ))}
                 {order.services.map((item) => (
                   <tr key={`service-${item.serviceId}`} className="border-b last:border-0">
+                    <td className="px-3 py-2">
+                      <ItemTypeBadge type="service" />
+                    </td>
                     <td className="px-3 py-2">{item.name}</td>
                     <td className="px-3 py-2 text-right">1</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">

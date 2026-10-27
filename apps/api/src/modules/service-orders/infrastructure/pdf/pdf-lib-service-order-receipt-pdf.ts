@@ -14,8 +14,9 @@ const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 const LABEL_WIDTH = 108;
 
 const TABLE_COLUMNS = {
-  description: MARGIN + 6,
-  descriptionWidth: 246,
+  type: MARGIN + 6,
+  description: MARGIN + 78,
+  descriptionWidth: 174,
   quantityRight: MARGIN + 282,
   unitPriceRight: MARGIN + 378,
   totalRight: PAGE_WIDTH - MARGIN,
@@ -285,6 +286,13 @@ class ReceiptWriter {
       this.ensureSpace(26);
       const headerTextY = this.y + 2.8;
 
+      this.page.drawText('Tipo', {
+        x: columns.type,
+        y: headerTextY,
+        size: 8.5,
+        font: this.fonts.bold,
+        color: COLORS.muted,
+      });
       this.page.drawText('Descrição', {
         x: columns.description,
         y: headerTextY,
@@ -330,12 +338,14 @@ class ReceiptWriter {
 
     const items = [
       ...order.products.map((item) => ({
+        type: 'PRODUTO',
         name: item.name,
         quantity: String(item.quantity),
         unitPriceCents: item.unitPriceCents,
         totalCents: item.totalCents,
       })),
       ...order.services.map((item) => ({
+        type: 'SERVIÇO',
         name: item.name,
         quantity: '1',
         unitPriceCents: item.priceCents,
@@ -362,6 +372,14 @@ class ReceiptWriter {
       const numericBaseline = numericTop - TABLE_TEXT_ASCENT;
 
       let descriptionY = textBaseline;
+
+      this.page.drawText(item.type, {
+        x: columns.type,
+        y: textBaseline,
+        size: 7.5,
+        font: this.fonts.bold,
+        color: COLORS.muted,
+      });
 
       for (const line of descriptionLines) {
         this.page.drawText(line, {
