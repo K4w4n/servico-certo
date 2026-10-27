@@ -498,6 +498,17 @@ DELETE /v1/service-orders/:id
 - O web usa `@servico-certo/contracts` para validar o formulário e as respostas
   de auth (`loginSchema`, `authResponseSchema`).
 - Proteção de rota é client-side, pois o token não é persistido em storage.
+- Identidade visual (kawan.dev.br): paleta `#F5C518`, `#E8A900`, `#1A1A1A`,
+  `#2C2C2C`, `#3A3A3A`, `#FFFFFF`, `#D1D5DB`. Os tokens ficam em
+  `packages/config/tailwind/theme.css` (`brand`, `brand-deep`, `ink`, `surface`,
+  `surface-raised`, `fog`) e a fonte Outfit é exposta como `font-brand`
+  (`--font-outfit` via `next/font`), sem alterar a fonte do restante do app.
+  O bloco `.dark` do tema usa essa paleta e é aplicado por `class="dark"` — hoje
+  somente em `/login`. As demais telas seguem claras.
+- `/login` é a tela piloto do novo visual: layout de duas colunas com hero
+  (`modules/identity/components/login-hero.tsx`), faixa de módulos e cards de
+  destaque, card escuro com o formulário, CTA `variant="brand"` (gradiente âmbar)
+  e toggle de senha. Validação, mensagens e fluxo de autenticação não mudaram.
 - Recuperação de senha: `/forgot-password` envia a solicitação e sempre mostra
   mensagem genérica (anti-enumeração); `/reset-password?token=...` valida o token
   ao carregar e envia a nova senha, tratando link expirado/uso único. O fluxo
@@ -568,6 +579,8 @@ DELETE /v1/service-orders/:id
   `fetch` binário no web.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
+- Tema escuro da marca escopado por `.dark`, começando pelo login; o rollout
+  para as demais telas será incremental.
 
 ## Próximos passos naturais
 
