@@ -234,7 +234,9 @@ export function ServiceFormDialog(props: ServiceFormDialogProps) {
     >
       <form className="flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="service-name">Nome</Label>
+          <Label htmlFor="service-name" className="text-fog/70">
+            Nome
+          </Label>
           <Input
             id="service-name"
             name="name"
@@ -257,7 +259,9 @@ export function ServiceFormDialog(props: ServiceFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="service-description">Descrição</Label>
+          <Label htmlFor="service-description" className="text-fog/70">
+            Descrição
+          </Label>
           <Textarea
             id="service-description"
             name="description"
@@ -278,7 +282,9 @@ export function ServiceFormDialog(props: ServiceFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="service-price">Preço (R$)</Label>
+          <Label htmlFor="service-price" className="text-fog/70">
+            Preço (R$)
+          </Label>
           <Input
             id="service-price"
             name="price"
@@ -299,7 +305,7 @@ export function ServiceFormDialog(props: ServiceFormDialogProps) {
               {fieldErrors.price}
             </p>
           ) : (
-            <p id="service-price-hint" className="text-xs text-muted-foreground">
+            <p id="service-price-hint" className="text-xs text-fog/45">
               Use vírgula para os centavos. Ex.: 120,00.
             </p>
           )}
@@ -311,7 +317,7 @@ export function ServiceFormDialog(props: ServiceFormDialogProps) {
           <Button type="button" variant="outline" onClick={props.onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="brand" disabled={isSubmitting}>
             {isSubmitting ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Criar serviço'}
           </Button>
         </div>

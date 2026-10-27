@@ -23,18 +23,18 @@ export function ServicesTable({
   onClearFilters,
 }: ServicesTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card text-card-foreground shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border bg-card text-card-foreground">
       <table className="w-full text-sm" aria-busy={isLoading}>
         <caption className="sr-only">Serviços do tenant</caption>
-        <thead>
+        <thead className="bg-white/[0.02] text-[11px] tracking-[0.12em] text-fog/45 uppercase">
           <tr className="border-b text-left">
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold">
               Serviço
             </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
+            <th scope="col" className="px-4 py-3 text-right font-semibold">
               Preço
             </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
+            <th scope="col" className="px-4 py-3 text-right font-semibold">
               Ações
             </th>
           </tr>
@@ -43,7 +43,7 @@ export function ServicesTable({
         <tbody className={cn(isLoading && services.length > 0 && 'opacity-60')}>
           {isLoading && services.length === 0 ? (
             <tr>
-              <td colSpan={3} className="px-4 py-10 text-center text-muted-foreground">
+              <td colSpan={3} className="px-4 py-10 text-center text-fog/55">
                 Carregando serviços…
               </td>
             </tr>
@@ -53,7 +53,7 @@ export function ServicesTable({
             <tr>
               <td colSpan={3} className="px-4 py-10 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <p className="text-muted-foreground">
+                  <p className="text-fog/55">
                     {hasFilters
                       ? 'Nenhum serviço encontrado para os filtros informados.'
                       : 'Nenhum serviço cadastrado ainda.'}
@@ -69,19 +69,20 @@ export function ServicesTable({
           ) : null}
 
           {services.map((service) => (
-            <tr key={service.id} className="border-b last:border-0">
+            <tr
+              key={service.id}
+              className="border-b transition-colors last:border-0 hover:bg-white/[0.02]"
+            >
               <td className="px-4 py-3">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{service.name}</span>
+                  <span className="font-medium text-white">{service.name}</span>
                   {service.description ? (
-                    <span className="line-clamp-1 text-xs text-muted-foreground">
-                      {service.description}
-                    </span>
+                    <span className="line-clamp-1 text-xs text-fog/45">{service.description}</span>
                   ) : null}
                 </div>
               </td>
 
-              <td className="px-4 py-3 text-right whitespace-nowrap">
+              <td className="px-4 py-3 text-right font-medium whitespace-nowrap text-white">
                 {formatPrice(service.priceCents)}
               </td>
 

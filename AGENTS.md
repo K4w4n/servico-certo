@@ -505,8 +505,8 @@ DELETE /v1/service-orders/:id
   (`--font-outfit` via `next/font`), sem alterar a fonte do restante do app.
   O bloco `.dark` do tema usa essa paleta e é aplicado por `class="dark"` — hoje
   em `/login`, `/register`, `/forgot-password`, `/reset-password`, na home
-  autenticada (`/`), em `/customers` e em `/products`. As demais telas seguem
-  claras.
+  autenticada (`/`), em `/customers`, `/products` e `/services`. As demais telas
+  seguem claras.
   Dialogs renderizam em portal e herdam o tema por `AppThemeProvider`
   (`shared/ui/app-theme.tsx`), então acompanham automaticamente o `AppShell`.
 - `/login` é a tela piloto do novo visual: layout de duas colunas com hero
@@ -553,7 +553,9 @@ DELETE /v1/service-orders/:id
   filtro por nome, criação, edição e exclusão com confirmação. Nome e preço são
   obrigatórios; a descrição é opcional. O formulário trabalha em reais, formata
   o preço ao sair do campo e envia `priceCents` para a API. Excluir é soft
-  delete: o serviço sai da lista e não pode ser usado em novas ordens de serviço.
+  delete: o serviço sai da lista e não pode ser usado em novas ordens de
+  serviço. A tela usa o tema escuro (`AppShell theme="dark"`), com filtros,
+  tabela e dialogs no padrão da marca.
 - Gestão de ordens de serviço: `/service-orders` lista as ordens com paginação
   e filtros por protocolo, cliente, produto e serviço; criação, edição e
   exclusão com confirmação. Clientes, produtos e serviços usam selects com
@@ -596,8 +598,8 @@ DELETE /v1/service-orders/:id
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 - Tema escuro da marca escopado por `.dark`, começando pelo login, cadastro,
-  recuperação de senha, home, clientes e produtos; o rollout para as demais
-  telas será incremental.
+  recuperação de senha, home, clientes, produtos e serviços; o rollout para as
+  demais telas será incremental.
 
 ## Próximos passos naturais
 
