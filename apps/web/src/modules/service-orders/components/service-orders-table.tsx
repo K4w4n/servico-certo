@@ -32,24 +32,24 @@ export function ServiceOrdersTable({
   onClearFilters,
 }: ServiceOrdersTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card text-card-foreground shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border bg-card text-card-foreground">
       <table className="w-full text-sm" aria-busy={isLoading}>
         <caption className="sr-only">Ordens de serviço do tenant</caption>
-        <thead>
+        <thead className="bg-white/[0.02] text-[11px] tracking-[0.12em] text-fog/45 uppercase">
           <tr className="border-b text-left">
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold">
               Protocolo
             </th>
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold">
               Cliente
             </th>
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold">
               Itens
             </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
+            <th scope="col" className="px-4 py-3 text-right font-semibold">
               Total
             </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
+            <th scope="col" className="px-4 py-3 text-right font-semibold">
               Ações
             </th>
           </tr>
@@ -58,7 +58,7 @@ export function ServiceOrdersTable({
         <tbody className={cn(isLoading && orders.length > 0 && 'opacity-60')}>
           {isLoading && orders.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+              <td colSpan={5} className="px-4 py-10 text-center text-fog/55">
                 Carregando ordens de serviço…
               </td>
             </tr>
@@ -68,7 +68,7 @@ export function ServiceOrdersTable({
             <tr>
               <td colSpan={5} className="px-4 py-10 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <p className="text-muted-foreground">
+                  <p className="text-fog/55">
                     {hasFilters
                       ? 'Nenhuma ordem de serviço encontrada para os filtros informados.'
                       : 'Nenhuma ordem de serviço cadastrada ainda.'}
@@ -84,13 +84,16 @@ export function ServiceOrdersTable({
           ) : null}
 
           {orders.map((order) => (
-            <tr key={order.id} className="border-b last:border-0">
+            <tr
+              key={order.id}
+              className="border-b transition-colors last:border-0 hover:bg-white/[0.02]"
+            >
               <td className="px-4 py-3 align-top">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium whitespace-nowrap">
+                  <span className="font-medium whitespace-nowrap text-white">
                     {formatProtocol(order.protocol)}
                   </span>
-                  <span className="text-xs whitespace-nowrap text-muted-foreground">
+                  <span className="text-xs whitespace-nowrap text-fog/45">
                     {formatServiceOrderDate(order.createdAt)}
                   </span>
                 </div>
@@ -98,9 +101,9 @@ export function ServiceOrdersTable({
 
               <td className="px-4 py-3 align-top">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{order.customer.name}</span>
+                  <span className="font-medium text-white">{order.customer.name}</span>
                   {order.customer.phoneNumber ? (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs whitespace-nowrap text-fog/45">
                       {formatPhoneNumber(order.customer.phoneNumber)}
                     </span>
                   ) : null}
@@ -110,13 +113,11 @@ export function ServiceOrdersTable({
               <td className="max-w-md px-4 py-3 align-top">
                 <div className="flex flex-col gap-0.5">
                   <span className="line-clamp-2">{describeServiceOrderItems(order)}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {countServiceOrderItems(order)}
-                  </span>
+                  <span className="text-xs text-fog/45">{countServiceOrderItems(order)}</span>
                 </div>
               </td>
 
-              <td className="px-4 py-3 text-right align-top font-medium whitespace-nowrap">
+              <td className="px-4 py-3 text-right align-top font-medium whitespace-nowrap text-white">
                 {formatPrice(order.totalCents)}
               </td>
 

@@ -229,12 +229,18 @@ export function ServiceOrdersScreen() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Ordens de serviço</h1>
-          <p className="text-sm text-muted-foreground">Gerencie as ordens de serviço do tenant.</p>
+        <div className="flex flex-col gap-2">
+          <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] text-brand uppercase">
+            <span className="size-1.5 rounded-full bg-brand" />
+            Atendimento
+          </span>
+          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+            Ordens de serviço
+          </h1>
+          <p className="text-sm text-fog/55">Gerencie as ordens de serviço do tenant.</p>
         </div>
 
-        <Button onClick={() => setDialog({ type: 'create' })}>
+        <Button variant="brand" onClick={() => setDialog({ type: 'create' })}>
           <Plus aria-hidden="true" />
           Nova ordem de serviço
         </Button>
@@ -284,7 +290,7 @@ export function ServiceOrdersScreen() {
       />
 
       <div className="flex flex-col gap-3 px-1 text-sm sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-muted-foreground">
+        <span className="text-fog/55">
           {isLoading && !result
             ? 'Carregando ordens de serviço…'
             : meta.total === 0
@@ -301,7 +307,7 @@ export function ServiceOrdersScreen() {
           >
             Anterior
           </Button>
-          <span className="text-muted-foreground">
+          <span className="text-fog/55">
             Página {currentPage} de {pageCount}
           </span>
           <Button

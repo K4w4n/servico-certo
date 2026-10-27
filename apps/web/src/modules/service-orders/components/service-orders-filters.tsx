@@ -48,13 +48,12 @@ export function ServiceOrdersFilters({
   }
 
   return (
-    <form
-      className="rounded-xl border bg-card p-4 text-card-foreground shadow-sm"
-      onSubmit={handleSubmit}
-    >
+    <form className="rounded-2xl border bg-card p-4 text-card-foreground" onSubmit={handleSubmit}>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="filter-protocol">Protocolo</Label>
+          <Label htmlFor="filter-protocol" className="text-fog/70">
+            Protocolo
+          </Label>
           <Input
             id="filter-protocol"
             name="protocol"
@@ -69,7 +68,9 @@ export function ServiceOrdersFilters({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="filter-customer">Cliente</Label>
+          <Label htmlFor="filter-customer" className="text-fog/70">
+            Cliente
+          </Label>
           <SearchableSelect
             id="filter-customer"
             value={values.customerId}
@@ -85,7 +86,9 @@ export function ServiceOrdersFilters({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="filter-product">Produto</Label>
+          <Label htmlFor="filter-product" className="text-fog/70">
+            Produto
+          </Label>
           <SearchableSelect
             id="filter-product"
             value={values.productId}
@@ -101,7 +104,9 @@ export function ServiceOrdersFilters({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="filter-service">Serviço</Label>
+          <Label htmlFor="filter-service" className="text-fog/70">
+            Serviço
+          </Label>
           <SearchableSelect
             id="filter-service"
             value={values.serviceId}
@@ -118,7 +123,7 @@ export function ServiceOrdersFilters({
       </div>
 
       <div className="mt-3 flex flex-wrap justify-end gap-2">
-        <Button type="submit">
+        <Button type="submit" variant="brand">
           <Search aria-hidden="true" />
           Pesquisar
         </Button>

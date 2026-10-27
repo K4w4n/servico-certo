@@ -193,7 +193,9 @@ export function AccountFormDialog(props: AccountFormDialogProps) {
     >
       <form className="flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="account-name">Nome</Label>
+          <Label htmlFor="account-name" className="text-fog/70">
+            Nome
+          </Label>
           <Input
             id="account-name"
             name="name"
@@ -216,7 +218,9 @@ export function AccountFormDialog(props: AccountFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="account-email">E-mail</Label>
+          <Label htmlFor="account-email" className="text-fog/70">
+            E-mail
+          </Label>
           <Input
             id="account-email"
             name="email"
@@ -237,7 +241,7 @@ export function AccountFormDialog(props: AccountFormDialogProps) {
               {fieldErrors.email}
             </p>
           ) : (
-            <p id="account-email-hint" className="text-xs text-muted-foreground">
+            <p id="account-email-hint" className="text-xs text-fog/45">
               O e-mail é usado para entrar na conta.
             </p>
           )}
@@ -246,7 +250,9 @@ export function AccountFormDialog(props: AccountFormDialogProps) {
         {!isEdit ? (
           <>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="account-password">Senha inicial</Label>
+              <Label htmlFor="account-password" className="text-fog/70">
+                Senha inicial
+              </Label>
               <Input
                 id="account-password"
                 name="password"
@@ -266,14 +272,16 @@ export function AccountFormDialog(props: AccountFormDialogProps) {
                   {fieldErrors.password}
                 </p>
               ) : (
-                <p id="account-password-hint" className="text-xs text-muted-foreground">
+                <p id="account-password-hint" className="text-xs text-fog/45">
                   Mínimo de 10 caracteres.
                 </p>
               )}
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="account-password-confirmation">Confirmar senha</Label>
+              <Label htmlFor="account-password-confirmation" className="text-fog/70">
+                Confirmar senha
+              </Label>
               <Input
                 id="account-password-confirmation"
                 name="passwordConfirmation"
@@ -305,7 +313,7 @@ export function AccountFormDialog(props: AccountFormDialogProps) {
           <Button type="button" variant="outline" onClick={props.onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="brand" disabled={isSubmitting}>
             {isSubmitting ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Criar usuário'}
           </Button>
         </div>

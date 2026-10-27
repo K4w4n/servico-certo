@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ServiceOrdersPage() {
   return (
-    <AppShell>
+    <AppShell theme="dark">
       <ServiceOrdersScreen />
     </AppShell>
   );

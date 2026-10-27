@@ -8,7 +8,8 @@ type AlertProps = ComponentProps<'div'> & {
 };
 
 const variantClasses: Record<AlertVariant, string> = {
-  default: 'bg-card text-card-foreground',
+  default:
+    'bg-card text-card-foreground dark:border-white/10 dark:bg-white/[0.04] dark:text-fog/70',
   success:
     'border-emerald-600/30 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300',
   destructive: 'border-destructive/40 bg-destructive/10 text-destructive',

@@ -191,7 +191,9 @@ export function SearchableSelect({
         aria-describedby={ariaDescribedBy}
         className={cn(
           'flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 pr-9 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+          'dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:placeholder:text-fog/30',
           'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
+          'dark:focus-visible:border-brand/60 dark:focus-visible:ring-brand/25',
           'aria-invalid:border-destructive aria-invalid:ring-destructive/20',
         )}
         placeholder={placeholder}
@@ -207,7 +209,7 @@ export function SearchableSelect({
         <button
           type="button"
           aria-label="Limpar seleção"
-          className="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none dark:text-fog/45 dark:hover:bg-white/5 dark:hover:text-brand"
           onMouseDown={(event) => event.preventDefault()}
           onClick={clearSelection}
         >
@@ -216,7 +218,7 @@ export function SearchableSelect({
       ) : (
         <ChevronDown
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground dark:text-fog/45"
         />
       )}
 
@@ -225,10 +227,13 @@ export function SearchableSelect({
           id={listboxId}
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+          className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md dark:border-white/10 dark:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)]"
         >
           {filteredOptions.length === 0 ? (
-            <li role="presentation" className="px-3 py-2 text-sm text-muted-foreground">
+            <li
+              role="presentation"
+              className="px-3 py-2 text-sm text-muted-foreground dark:text-fog/45"
+            >
               {emptyMessage}
             </li>
           ) : null}

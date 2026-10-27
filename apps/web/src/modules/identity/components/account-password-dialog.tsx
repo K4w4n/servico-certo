@@ -109,7 +109,9 @@ export function AccountPasswordDialog({
         )}
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Nova senha</Label>
+          <Label htmlFor="password" className="text-fog/70">
+            Nova senha
+          </Label>
           <Input
             id="password"
             name="password"
@@ -128,14 +130,16 @@ export function AccountPasswordDialog({
               {fieldErrors.password}
             </p>
           ) : (
-            <p id="password-hint" className="text-xs text-muted-foreground">
+            <p id="password-hint" className="text-xs text-fog/45">
               Mínimo de 10 caracteres.
             </p>
           )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="passwordConfirmation">Confirmar nova senha</Label>
+          <Label htmlFor="passwordConfirmation" className="text-fog/70">
+            Confirmar nova senha
+          </Label>
           <Input
             id="passwordConfirmation"
             name="passwordConfirmation"
@@ -163,7 +167,7 @@ export function AccountPasswordDialog({
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="brand" disabled={isSubmitting}>
             {isSubmitting ? 'Alterando…' : 'Alterar senha'}
           </Button>
         </div>

@@ -576,7 +576,9 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
         ) : null}
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="service-order-customer">Cliente</Label>
+          <Label htmlFor="service-order-customer" className="text-fog/70">
+            Cliente
+          </Label>
           <SearchableSelect
             id="service-order-customer"
             value={customerId}
@@ -596,7 +598,9 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="service-order-note">Observação</Label>
+          <Label htmlFor="service-order-note" className="text-fog/70">
+            Observação
+          </Label>
           <Textarea
             id="service-order-note"
             name="note"
@@ -611,7 +615,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold">Produtos</h3>
+            <h3 className="text-sm font-semibold text-white">Produtos</h3>
             <Button
               type="button"
               variant="outline"
@@ -625,7 +629,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
           </div>
 
           {productLines.length === 0 ? (
-            <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-fog/45">
               Nenhum produto adicionado.
             </p>
           ) : null}
@@ -651,12 +655,12 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
             ];
 
             return (
-              <div key={line.key} className="rounded-lg border p-3">
+              <div key={line.key} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_140px_90px_auto] md:items-end">
                   <div className="flex flex-col gap-1">
                     <Label
                       htmlFor={`service-order-product-${line.key}`}
-                      className="text-xs text-muted-foreground"
+                      className="text-xs text-fog/45"
                     >
                       Produto
                     </Label>
@@ -679,7 +683,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
                   <div className="flex flex-col gap-1">
                     <Label
                       htmlFor={`service-order-product-price-${line.key}`}
-                      className="text-xs text-muted-foreground"
+                      className="text-xs text-fog/45"
                     >
                       Preço unitário (R$)
                     </Label>
@@ -705,7 +709,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
                   <div className="flex flex-col gap-1">
                     <Label
                       htmlFor={`service-order-product-quantity-${line.key}`}
-                      className="text-xs text-muted-foreground"
+                      className="text-xs text-fog/45"
                     >
                       Qtd.
                     </Label>
@@ -730,6 +734,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="text-fog/45 hover:bg-white/5 hover:text-destructive"
                     aria-label={`Remover produto ${index + 1}`}
                     onClick={() => removeProductLine(line.key)}
                     disabled={isSubmitting || props.isReferencesLoading}
@@ -744,7 +749,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold">Serviços</h3>
+            <h3 className="text-sm font-semibold text-white">Serviços</h3>
             <Button
               type="button"
               variant="outline"
@@ -758,7 +763,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
           </div>
 
           {serviceLines.length === 0 ? (
-            <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-fog/45">
               Nenhum serviço adicionado.
             </p>
           ) : null}
@@ -784,12 +789,12 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
             ];
 
             return (
-              <div key={line.key} className="rounded-lg border p-3">
+              <div key={line.key} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_140px_auto] md:items-end">
                   <div className="flex flex-col gap-1">
                     <Label
                       htmlFor={`service-order-service-${line.key}`}
-                      className="text-xs text-muted-foreground"
+                      className="text-xs text-fog/45"
                     >
                       Serviço
                     </Label>
@@ -812,7 +817,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
                   <div className="flex flex-col gap-1">
                     <Label
                       htmlFor={`service-order-service-price-${line.key}`}
-                      className="text-xs text-muted-foreground"
+                      className="text-xs text-fog/45"
                     >
                       Preço (R$)
                     </Label>
@@ -839,6 +844,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
                     type="button"
                     variant="ghost"
                     size="icon"
+                    className="text-fog/45 hover:bg-white/5 hover:text-destructive"
                     aria-label={`Remover serviço ${index + 1}`}
                     onClick={() => removeServiceLine(line.key)}
                     disabled={isSubmitting || props.isReferencesLoading}
@@ -851,7 +857,7 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
           })}
         </section>
 
-        <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+        <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3">
           <span className="text-sm font-medium">Total</span>
           <span className="text-lg font-semibold" aria-live="polite">
             {formatPrice(totalCents)}
@@ -864,7 +870,11 @@ export function ServiceOrderFormDialog(props: ServiceOrderFormDialogProps) {
           <Button type="button" variant="outline" onClick={props.onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting || props.isReferencesLoading}>
+          <Button
+            type="submit"
+            variant="brand"
+            disabled={isSubmitting || props.isReferencesLoading}
+          >
             {isSubmitting ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Criar ordem de serviço'}
           </Button>
         </div>

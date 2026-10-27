@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AccountsPage() {
   return (
-    <AppShell>
+    <AppShell theme="dark">
       <AccountsScreen />
     </AppShell>
   );

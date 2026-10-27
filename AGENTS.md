@@ -504,9 +504,10 @@ DELETE /v1/service-orders/:id
   `surface-raised`, `fog`) e a fonte Outfit é exposta como `font-brand`
   (`--font-outfit` via `next/font`), sem alterar a fonte do restante do app.
   O bloco `.dark` do tema usa essa paleta e é aplicado por `class="dark"` — hoje
-  em `/login`, `/register`, `/forgot-password`, `/reset-password`, na home
-  autenticada (`/`), em `/customers`, `/products` e `/services`. As demais telas
-  seguem claras.
+  em todas as telas do web: auth (`/login`, `/register`, `/forgot-password`,
+  `/reset-password`), home e módulos autenticados (`/customers`, `/products`,
+  `/services`, `/service-orders`, `/accounts`). Novas telas devem seguir esse
+  padrão.
   Dialogs renderizam em portal e herdam o tema por `AppThemeProvider`
   (`shared/ui/app-theme.tsx`), então acompanham automaticamente o `AppShell`.
 - `/login` é a tela piloto do novo visual: layout de duas colunas com hero
@@ -525,15 +526,17 @@ DELETE /v1/service-orders/:id
   formulário, dividido em “Seu negócio” e “Seu acesso”. Usa o mesmo `AuthShell`
   escuro, ícones nos campos, toggle de senha e CTA `brand`.
 - Início (`/`): painel escuro com boas-vindas, atalhos para os módulos, dados do
-  tenant/conta e a lista de próximos recursos. Usa `AppShell theme="dark"`; as
-  demais telas autenticadas continuam no shell claro até o rollout.
+  tenant/conta e a lista de próximos recursos. Usa `AppShell theme="dark"`, assim
+  como todas as telas autenticadas.
 - Gestão de usuários: `/accounts` lista as contas do tenant com paginação e
   filtros por nome/e-mail, criação, edição, troca de senha, envio de reset de
   senha por e-mail e bloqueio/desbloqueio. A própria conta não pode ser
   bloqueada; contas bloqueadas não recebem reset (o botão fica desabilitado).
   Editar o próprio nome ou e-mail sincroniza o cabeçalho via `updateAccount` do
   `AuthProvider`. Trocar a própria senha derruba os refresh tokens, mas mantém o
-  access token atual até expirar.
+  access token atual até expirar. A tela usa o tema escuro
+  (`AppShell theme="dark"`), com filtros, tabela, status e dialogs no padrão da
+  marca.
 - Gestão de clientes: `/customers` lista os clientes do tenant com paginação e
   filtros por nome/documento, criação, edição e exclusão com confirmação. O
   documento é opcional, mas `document` e `documentType` devem ser informados
@@ -566,7 +569,8 @@ DELETE /v1/service-orders/:id
   apenas cliente, observação ou a lista de itens que mudou. O protocolo é gerado
   pela API e não é editável. A ação **Abrir** exibe um popup com os principais
   dados da ordem e um botão para baixar o comprovante em PDF. Excluir é soft
-  delete.
+  delete. A tela e os dialogs (formulário, detalhes e PDF) usam o tema escuro
+  (`AppShell theme="dark"`), com os selects de busca no padrão da marca.
 - Ainda faltam: estoque, faturamento/nota e papéis/permissões.
 - Tokens: access em memória; refresh em cookie httpOnly; `/refresh` no reload.
 - `NEXT_PUBLIC_API_URL` configurada em `apps/web/.env.local`.
@@ -597,9 +601,8 @@ DELETE /v1/service-orders/:id
   `fetch` binário no web.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
-- Tema escuro da marca escopado por `.dark`, começando pelo login, cadastro,
-  recuperação de senha, home, clientes, produtos e serviços; o rollout para as
-  demais telas será incremental.
+- Tema escuro da marca aplicado em todas as telas do web (auth, home, cadastros,
+  ordens de serviço e usuários); novas telas devem seguir esse padrão.
 
 ## Próximos passos naturais
 

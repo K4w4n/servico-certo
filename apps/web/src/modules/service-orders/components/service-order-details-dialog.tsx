@@ -61,10 +61,8 @@ export function ServiceOrderDetailsDialog({
         {downloadError ? <Alert variant="destructive">{downloadError}</Alert> : null}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <section className="rounded-lg border p-4">
-            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Cliente
-            </h3>
+          <section className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+            <h3 className="text-xs font-semibold tracking-wide text-fog/45 uppercase">Cliente</h3>
             <dl className="mt-3 flex flex-col gap-2 text-sm">
               <div>
                 <dt className="sr-only">Nome</dt>
@@ -72,47 +70,43 @@ export function ServiceOrderDetailsDialog({
               </div>
               {order.customer.document && order.customer.documentType ? (
                 <div className="flex flex-wrap gap-1">
-                  <dt className="text-muted-foreground">{order.customer.documentType}:</dt>
+                  <dt className="text-fog/45">{order.customer.documentType}:</dt>
                   <dd>{formatDocument(order.customer.document)}</dd>
                 </div>
               ) : null}
               {order.customer.phoneNumber ? (
                 <div className="flex flex-wrap gap-1">
-                  <dt className="text-muted-foreground">Telefone:</dt>
+                  <dt className="text-fog/45">Telefone:</dt>
                   <dd>{formatPhoneNumber(order.customer.phoneNumber)}</dd>
                 </div>
               ) : null}
               {order.customer.address ? (
                 <div className="flex flex-wrap gap-1">
-                  <dt className="text-muted-foreground">Endereço:</dt>
+                  <dt className="text-fog/45">Endereço:</dt>
                   <dd>{order.customer.address}</dd>
                 </div>
               ) : null}
             </dl>
           </section>
 
-          <section className="rounded-lg border p-4">
-            <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Ordem
-            </h3>
+          <section className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+            <h3 className="text-xs font-semibold tracking-wide text-fog/45 uppercase">Ordem</h3>
             <dl className="mt-3 flex flex-col gap-2 text-sm">
               <div className="flex flex-wrap justify-between gap-2">
-                <dt className="text-muted-foreground">Criada em</dt>
+                <dt className="text-fog/45">Criada em</dt>
                 <dd>{formatServiceOrderDate(order.createdAt)}</dd>
               </div>
               <div className="flex flex-wrap justify-between gap-2">
-                <dt className="text-muted-foreground">Última atualização</dt>
+                <dt className="text-fog/45">Última atualização</dt>
                 <dd>{formatServiceOrderDate(order.updatedAt)}</dd>
               </div>
               <div className="flex flex-wrap justify-between gap-2">
-                <dt className="text-muted-foreground">Criada por</dt>
+                <dt className="text-fog/45">Criada por</dt>
                 <dd className="text-right">
                   {order.createdBy ? (
                     <>
                       <span className="block">{order.createdBy.name}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {order.createdBy.email}
-                      </span>
+                      <span className="block text-xs text-fog/45">{order.createdBy.email}</span>
                     </>
                   ) : (
                     'Não informado'
@@ -127,20 +121,20 @@ export function ServiceOrderDetailsDialog({
           <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Itens
           </h3>
-          <div className="overflow-x-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-lg border border-white/10">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/40 text-left">
-                  <th scope="col" className="px-3 py-2 font-medium">
+                <tr className="border-b border-white/10 bg-white/[0.03] text-left text-[11px] tracking-[0.12em] text-fog/45 uppercase">
+                  <th scope="col" className="px-3 py-2 font-semibold">
                     Descrição
                   </th>
-                  <th scope="col" className="px-3 py-2 text-right font-medium">
+                  <th scope="col" className="px-3 py-2 text-right font-semibold">
                     Qtd.
                   </th>
-                  <th scope="col" className="px-3 py-2 text-right font-medium">
+                  <th scope="col" className="px-3 py-2 text-right font-semibold">
                     Unitário
                   </th>
-                  <th scope="col" className="px-3 py-2 text-right font-medium">
+                  <th scope="col" className="px-3 py-2 text-right font-semibold">
                     Total
                   </th>
                 </tr>
@@ -172,7 +166,7 @@ export function ServiceOrderDetailsDialog({
                 ))}
               </tbody>
               <tfoot>
-                <tr className="border-t bg-muted/20">
+                <tr className="border-t border-white/10 bg-white/[0.04]">
                   <th scope="row" colSpan={3} className="px-3 py-2 text-right font-medium">
                     Total
                   </th>
@@ -190,17 +184,17 @@ export function ServiceOrderDetailsDialog({
             <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               Observação
             </h3>
-            <p className="rounded-lg border bg-muted/20 px-3 py-2 text-sm whitespace-pre-wrap">
+            <p className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm whitespace-pre-wrap">
               {order.note}
             </p>
           </section>
         ) : null}
 
-        <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+        <div className="flex flex-wrap justify-end gap-2 border-t border-white/10 pt-4">
           <Button variant="outline" onClick={onClose} disabled={isDownloading}>
             Fechar
           </Button>
-          <Button onClick={handleDownload} disabled={isDownloading}>
+          <Button variant="brand" onClick={handleDownload} disabled={isDownloading}>
             <Download aria-hidden="true" />
             {isDownloading ? 'Gerando PDF…' : 'Baixar comprovante PDF'}
           </Button>
