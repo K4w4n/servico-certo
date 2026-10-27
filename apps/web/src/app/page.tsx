@@ -127,7 +127,7 @@ function HomeContent() {
 
             <Link
               href="/customers"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/15 px-6 text-sm font-medium text-white transition-colors hover:border-brand/40 hover:bg-white/5 hover:text-brand focus-visible:ring-[3px] focus-visible:ring-brand/30 focus-visible:outline-none"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/15 px-6 text-sm font-medium text-white transition-colors hover:border-brand/40 hover:bg-white/5 hover:text-brand focus-visible:ring-[3px] focus-visible:ring-brand/30 focus-visible:outline-none"
             >
               Ver clientes
               <ArrowUpRight className="size-4" />

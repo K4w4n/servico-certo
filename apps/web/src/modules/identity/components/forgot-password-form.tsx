@@ -138,7 +138,7 @@ export function ForgotPasswordForm() {
           href="/login"
           className={cn(
             buttonVariants({ variant: 'outline', size: 'lg' }),
-            'w-full rounded-full border-white/15 bg-transparent text-white hover:border-brand/40 hover:bg-white/5 hover:text-brand',
+            'w-full border-white/15 bg-transparent text-white hover:border-brand/40 hover:bg-white/5 hover:text-brand',
           )}
         >
           Voltar para o login

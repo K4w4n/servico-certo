@@ -29,7 +29,7 @@ export function ConfirmDialog({
   return (
     <Dialog open onClose={onClose} title={title} closeDisabled={isLoading}>
       <div className="flex flex-col gap-5">
-        <div className="text-sm text-muted-foreground">{description}</div>
+        <div className="text-sm text-muted-foreground dark:text-fog/60">{description}</div>
 
         {error ? <Alert variant="destructive">{error}</Alert> : null}
 

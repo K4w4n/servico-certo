@@ -47,7 +47,7 @@ export default function LoginPage() {
 
         <Link
           href="/register"
-          className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:border-brand/40 hover:bg-white/5 hover:text-brand focus-visible:ring-[3px] focus-visible:ring-brand/30 focus-visible:outline-none"
+          className="inline-flex items-center gap-2 rounded-md border border-white/15 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:border-brand/40 hover:bg-white/5 hover:text-brand focus-visible:ring-[3px] focus-visible:ring-brand/30 focus-visible:outline-none"
         >
           Criar negócio
           <ArrowRight className="size-4" />

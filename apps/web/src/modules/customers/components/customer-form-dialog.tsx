@@ -328,7 +328,9 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
     >
       <form className="flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-name">Nome</Label>
+          <Label htmlFor="customer-name" className="text-fog/70">
+            Nome
+          </Label>
           <Input
             id="customer-name"
             name="name"
@@ -358,7 +360,9 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
           }
         >
           <div className="flex flex-col gap-2">
-            <Label htmlFor="customer-document-type">Tipo de documento</Label>
+            <Label htmlFor="customer-document-type" className="text-fog/70">
+              Tipo de documento
+            </Label>
             <Select
               id="customer-document-type"
               name="documentType"
@@ -383,7 +387,9 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
 
           {values.documentType ? (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="customer-document">Documento</Label>
+              <Label htmlFor="customer-document" className="text-fog/70">
+                Documento
+              </Label>
               <Input
                 id="customer-document"
                 name="document"
@@ -406,7 +412,7 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
                   {fieldErrors.document}
                 </p>
               ) : (
-                <p id="customer-document-hint" className="text-xs text-muted-foreground">
+                <p id="customer-document-hint" className="text-xs text-fog/45">
                   CPF ou CNPJ, com ou sem pontuação. Para remover, selecione “Sem documento”.
                 </p>
               )}
@@ -415,7 +421,9 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-phone">Telefone</Label>
+          <Label htmlFor="customer-phone" className="text-fog/70">
+            Telefone
+          </Label>
           <Input
             id="customer-phone"
             name="phoneNumber"
@@ -437,14 +445,16 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
               {fieldErrors.phoneNumber}
             </p>
           ) : (
-            <p id="customer-phone-hint" className="text-xs text-muted-foreground">
+            <p id="customer-phone-hint" className="text-xs text-fog/45">
               10 ou 11 dígitos, com ou sem pontuação.
             </p>
           )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="customer-address">Endereço</Label>
+          <Label htmlFor="customer-address" className="text-fog/70">
+            Endereço
+          </Label>
           <Textarea
             id="customer-address"
             name="address"
@@ -471,7 +481,7 @@ export function CustomerFormDialog(props: CustomerFormDialogProps) {
           <Button type="button" variant="outline" onClick={props.onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="brand" disabled={isSubmitting}>
             {isSubmitting ? 'Salvando…' : isEdit ? 'Salvar alterações' : 'Criar cliente'}
           </Button>
         </div>

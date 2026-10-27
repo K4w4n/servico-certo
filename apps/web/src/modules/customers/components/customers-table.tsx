@@ -23,21 +23,21 @@ export function CustomersTable({
   onClearFilters,
 }: CustomersTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card text-card-foreground shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border bg-card text-card-foreground">
       <table className="w-full text-sm" aria-busy={isLoading}>
         <caption className="sr-only">Clientes do tenant</caption>
-        <thead>
+        <thead className="bg-white/[0.02] text-[11px] tracking-[0.12em] text-fog/45 uppercase">
           <tr className="border-b text-left">
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold">
               Cliente
             </th>
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold whitespace-nowrap">
               Documento
             </th>
-            <th scope="col" className="px-4 py-3 font-medium">
+            <th scope="col" className="px-4 py-3 font-semibold whitespace-nowrap">
               Telefone
             </th>
-            <th scope="col" className="px-4 py-3 text-right font-medium">
+            <th scope="col" className="px-4 py-3 text-right font-semibold">
               Ações
             </th>
           </tr>
@@ -46,7 +46,7 @@ export function CustomersTable({
         <tbody className={cn(isLoading && customers.length > 0 && 'opacity-60')}>
           {isLoading && customers.length === 0 ? (
             <tr>
-              <td colSpan={4} className="px-4 py-10 text-center text-muted-foreground">
+              <td colSpan={4} className="px-4 py-10 text-center text-fog/55">
                 Carregando clientes…
               </td>
             </tr>
@@ -56,7 +56,7 @@ export function CustomersTable({
             <tr>
               <td colSpan={4} className="px-4 py-10 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <p className="text-muted-foreground">
+                  <p className="text-fog/55">
                     {hasFilters
                       ? 'Nenhum cliente encontrado para os filtros informados.'
                       : 'Nenhum cliente cadastrado ainda.'}
@@ -72,34 +72,35 @@ export function CustomersTable({
           ) : null}
 
           {customers.map((customer) => (
-            <tr key={customer.id} className="border-b last:border-0">
+            <tr
+              key={customer.id}
+              className="border-b transition-colors last:border-0 hover:bg-white/[0.02]"
+            >
               <td className="px-4 py-3">
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{customer.name}</span>
+                  <span className="font-medium text-white">{customer.name}</span>
                   {customer.address ? (
-                    <span className="line-clamp-1 text-xs text-muted-foreground">
-                      {customer.address}
-                    </span>
+                    <span className="line-clamp-1 text-xs text-fog/45">{customer.address}</span>
                   ) : null}
                 </div>
               </td>
 
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {customer.document && customer.documentType ? (
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-xs text-muted-foreground">{customer.documentType}</span>
+                    <span className="text-xs text-fog/45">{customer.documentType}</span>
                     <span>{formatDocument(customer.document)}</span>
                   </div>
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="text-fog/35">—</span>
                 )}
               </td>
 
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 whitespace-nowrap">
                 {customer.phoneNumber ? (
                   formatPhoneNumber(customer.phoneNumber)
                 ) : (
-                  <span className="text-muted-foreground">—</span>
+                  <span className="text-fog/35">—</span>
                 )}
               </td>
 

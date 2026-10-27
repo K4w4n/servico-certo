@@ -504,8 +504,10 @@ DELETE /v1/service-orders/:id
   `surface-raised`, `fog`) e a fonte Outfit é exposta como `font-brand`
   (`--font-outfit` via `next/font`), sem alterar a fonte do restante do app.
   O bloco `.dark` do tema usa essa paleta e é aplicado por `class="dark"` — hoje
-  em `/login`, `/register`, `/forgot-password`, `/reset-password` e na home
-  autenticada (`/`, via `AppShell theme="dark"`). As demais telas seguem claras.
+  em `/login`, `/register`, `/forgot-password`, `/reset-password`, na home
+  autenticada (`/`) e em `/customers`. As demais telas seguem claras.
+  Dialogs renderizam em portal e herdam o tema por `AppThemeProvider`
+  (`shared/ui/app-theme.tsx`), então acompanham automaticamente o `AppShell`.
 - `/login` é a tela piloto do novo visual: layout de duas colunas com hero
   (`modules/identity/components/login-hero.tsx`), faixa de módulos e cards de
   destaque, card escuro com o formulário, CTA `variant="brand"` (gradiente âmbar)
@@ -537,7 +539,8 @@ DELETE /v1/service-orders/:id
   juntos; o campo de documento só aparece com CPF/CNPJ selecionado; documento e
   telefone são formatados ao sair do campo e normalizados pela API. Excluir é
   soft delete: o cliente sai da lista e não pode ser usado em novas ordens de
-  serviço.
+  serviço. A tela usa o tema escuro (`AppShell theme="dark"`), com filtros,
+  tabela e dialogs no padrão da marca.
 - Gestão de produtos: `/products` lista os produtos do tenant com paginação e
   filtro por nome, criação, edição e exclusão com confirmação. Nome e preço são
   obrigatórios; a descrição é opcional. O formulário trabalha em reais
@@ -591,7 +594,8 @@ DELETE /v1/service-orders/:id
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
 - Tema escuro da marca escopado por `.dark`, começando pelo login, cadastro,
-  recuperação de senha e home; o rollout para as demais telas será incremental.
+  recuperação de senha, home e clientes; o rollout para as demais telas será
+  incremental.
 
 ## Próximos passos naturais
 
