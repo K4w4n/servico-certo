@@ -504,8 +504,8 @@ DELETE /v1/service-orders/:id
   `surface-raised`, `fog`) e a fonte Outfit é exposta como `font-brand`
   (`--font-outfit` via `next/font`), sem alterar a fonte do restante do app.
   O bloco `.dark` do tema usa essa paleta e é aplicado por `class="dark"` — hoje
-  em `/login`, `/forgot-password`, `/reset-password` e na home autenticada (`/`,
-  via `AppShell theme="dark"`). As demais telas seguem claras.
+  em `/login`, `/register`, `/forgot-password`, `/reset-password` e na home
+  autenticada (`/`, via `AppShell theme="dark"`). As demais telas seguem claras.
 - `/login` é a tela piloto do novo visual: layout de duas colunas com hero
   (`modules/identity/components/login-hero.tsx`), faixa de módulos e cards de
   destaque, card escuro com o formulário, CTA `variant="brand"` (gradiente âmbar)
@@ -518,6 +518,9 @@ DELETE /v1/service-orders/:id
   ao carregar e envia a nova senha, tratando link expirado/uso único. O fluxo
   não autentica automaticamente. As duas telas usam o tema escuro do login
   (mesmo `AuthShell`, ícones nos campos, toggle de senha e CTA `brand`).
+- Registro (`/register`): cria o tenant e a primeira conta em um único
+  formulário, dividido em “Seu negócio” e “Seu acesso”. Usa o mesmo `AuthShell`
+  escuro, ícones nos campos, toggle de senha e CTA `brand`.
 - Início (`/`): painel escuro com boas-vindas, atalhos para os módulos, dados do
   tenant/conta e a lista de próximos recursos. Usa `AppShell theme="dark"`; as
   demais telas autenticadas continuam no shell claro até o rollout.
@@ -587,9 +590,8 @@ DELETE /v1/service-orders/:id
   `fetch` binário no web.
 - Sem enum nativo Postgres; paridade SQLite/Postgres.
 - Rate limit atual: 3/15 min por IP na solicitação de reset.
-- Tema escuro da marca escopado por `.dark`, começando pelo login, pela
-  recuperação de senha e pela home; o rollout para as demais telas será
-  incremental.
+- Tema escuro da marca escopado por `.dark`, começando pelo login, cadastro,
+  recuperação de senha e home; o rollout para as demais telas será incremental.
 
 ## Próximos passos naturais
 
